@@ -3,13 +3,65 @@
 [![Version](https://img.shields.io/badge/version-0.1.0-111827)](https://github.com/aryanibos/arx-backend/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-16a34a.svg)](LICENSE)
 [![Codex Plugin](https://img.shields.io/badge/Codex-plugin-111827)](https://developers.openai.com/plugins/)
+[![Agent Skill](https://img.shields.io/badge/Agent%20Skill-cross--agent-7c3aed)](https://skills.sh/)
 [![Backend Engineering](https://img.shields.io/badge/focus-backend%20engineering-2563eb)](#what-arx-be-covers)
 
-**ARX Backend** is a reusable backend engineering skill for Codex focused on building and reviewing backend systems that are **maintainable, secure, type-safe, testable, and production-oriented**.
+**ARX Backend** is a reusable backend engineering skill for AI coding agents. It helps agents build and review backend systems that are **maintainable, secure, type-safe, testable, and production-oriented**.
 
-The bundled skill is named **`arx-be`**.
+The skill is named **`arx-be`**.
 
 > Project-specific architecture always wins. `arx-be` provides strong defaults and review discipline, but it never silently replaces an approved HLD, ADR, repository convention, or explicit task instruction.
+
+---
+
+## Install
+
+### Cross-agent install with `skills`
+
+Install `arx-be` from GitHub with the cross-agent Skills CLI:
+
+```bash
+npx skills add aryanibos/arx-backend
+```
+
+The repository includes the conventional root skill path:
+
+```text
+skills/arx-be/SKILL.md
+```
+
+This makes the skill discoverable by tools that support the Agent Skills ecosystem. Depending on the CLI/agent, you can choose the target agent and whether the skill is installed locally or globally during installation.
+
+Typical supported agent environments include tools such as **Codex, Claude Code, Cursor, OpenCode**, and other clients that understand Agent Skills.
+
+### Codex plugin marketplace
+
+For the richer Codex plugin packaging, add this repository as a marketplace source:
+
+```bash
+codex plugin marketplace add aryanibos/arx-backend
+```
+
+Then install **ARX BE** from the added marketplace source.
+
+Verify configured marketplaces:
+
+```bash
+codex plugin marketplace list
+```
+
+Refresh marketplace updates later with:
+
+```bash
+codex plugin marketplace upgrade
+```
+
+### Which install should I use?
+
+| Goal | Recommended command |
+| --- | --- |
+| Use `arx-be` across compatible AI coding agents | `npx skills add aryanibos/arx-backend` |
+| Use the packaged Codex plugin/marketplace experience | `codex plugin marketplace add aryanibos/arx-backend` |
 
 ---
 
@@ -45,32 +97,6 @@ When a project has **not** already selected alternatives, `arx-be` prefers:
 - Pino structured logging
 
 These are preferences—not forced replacements for an existing project stack.
-
----
-
-## Install
-
-Add this repository as a Codex plugin marketplace source:
-
-```bash
-codex plugin marketplace add aryanibos/arx-backend
-```
-
-Then restart the supported ChatGPT/Codex host if required and install **ARX BE** from the added marketplace source.
-
-Verify configured marketplaces:
-
-```bash
-codex plugin marketplace list
-```
-
-Refresh marketplace updates later with:
-
-```bash
-codex plugin marketplace upgrade
-```
-
-Codex supports GitHub marketplace sources using `owner/repo` syntax.
 
 ---
 
@@ -194,10 +220,16 @@ Each finding should explain the location, problem, impact, and recommended fix.
 
 ```text
 .
+├── skills/                         # Cross-agent Agent Skills entrypoint
+│   └── arx-be/
+│       ├── SKILL.md
+│       └── references/
+│
 ├── .agents/
 │   └── plugins/
 │       └── marketplace.json
-├── plugins/
+│
+├── plugins/                        # Codex plugin packaging
 │   └── arx-be/
 │       ├── .codex-plugin/
 │       │   └── plugin.json
@@ -205,17 +237,20 @@ Each finding should explain the location, problem, impact, and recommended fix.
 │           └── arx-be/
 │               ├── SKILL.md
 │               └── references/
-│                   ├── api-standard.md
-│                   ├── backend-standard.md
-│                   ├── database-standard.md
-│                   └── review-checklist.md
+│
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md
 ```
 
-The skill's main behavior lives in [`SKILL.md`](plugins/arx-be/skills/arx-be/SKILL.md). More focused rules live under [`references/`](plugins/arx-be/skills/arx-be/references/).
+### Why are there two skill paths?
+
+The root [`skills/arx-be/`](skills/arx-be/) path is the **cross-agent distribution entrypoint** used by Agent Skills tooling.
+
+The [`plugins/arx-be/`](plugins/arx-be/) path packages the same behavior as a **Codex plugin** with marketplace metadata.
+
+They intentionally represent the same `arx-be` skill so users can choose the installation experience that matches their agent.
 
 ---
 
