@@ -1,0 +1,20 @@
+{
+  "name": "arx-backend",
+  "interface": {
+    "displayName": "ARX Backend"
+  },
+  "plugins": [
+    {
+      "name": "arx-be",
+      "source": {
+        "source": "local",
+        "path": "./plugins/arx-be"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
