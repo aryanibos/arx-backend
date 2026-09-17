@@ -1,0 +1,39 @@
+{
+  "name": "arx-be",
+  "version": "0.1.0",
+  "description": "Reusable backend engineering skill for secure, maintainable, type-safe implementation and code review workflows.",
+  "author": {
+    "name": "Arya Isnaidi",
+    "url": "https://github.com/aryanibos"
+  },
+  "license": "MIT",
+  "keywords": [
+    "backend",
+    "typescript",
+    "bun",
+    "hono",
+    "postgresql",
+    "drizzle",
+    "api",
+    "code-review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "ARX BE",
+    "shortDescription": "Backend engineering and review workflow",
+    "longDescription": "A reusable backend engineering skill focused on architecture boundaries, data integrity, security, testing, API design, PostgreSQL, queues, object storage, and code review.",
+    "developerName": "Arya Isnaidi",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use ARX BE to implement this backend task following the project's architecture.",
+      "Use ARX BE to review this backend change for correctness, security, and maintainability."
+    ],
+    "websiteURL": "https://github.com/aryanibos/arx-backend"
+  },
+  "homepage": "https://github.com/aryanibos/arx-backend",
+  "repository": "https://github.com/aryanibos/arx-backend"
+}
