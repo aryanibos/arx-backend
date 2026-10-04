@@ -1,0 +1,3 @@
+interface:
+  display_name: "ARX Backend"
+  short_description: "Backend implementation, debugging, and review workflow"

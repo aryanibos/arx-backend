@@ -1,7 +1,7 @@
 {
   "name": "arx-be",
-  "version": "0.1.0",
-  "description": "Reusable backend engineering skill for secure, maintainable, type-safe implementation and code review workflows.",
+  "version": "2.0.0",
+  "description": "Reusable backend engineering skill for implementation, debugging, refactoring, and code review with progressive domain references.",
   "author": {
     "name": "Arya Isnaidi",
     "url": "https://github.com/aryanibos"
@@ -15,13 +15,14 @@
     "postgresql",
     "drizzle",
     "api",
+    "security",
     "code-review"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "ARX BE",
-    "shortDescription": "Backend engineering and review workflow",
-    "longDescription": "A reusable backend engineering skill focused on architecture boundaries, data integrity, security, testing, API design, PostgreSQL, queues, object storage, and code review.",
+    "shortDescription": "Backend implementation, debugging, and review workflow",
+    "longDescription": "A reusable backend engineering skill with project-first architecture rules and progressive references for TypeScript, APIs, PostgreSQL, security, workers, object storage, testing, reliability, and code review.",
     "developerName": "Arya Isnaidi",
     "category": "Developer Tools",
     "capabilities": [
@@ -29,8 +30,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use ARX BE to implement this backend task following the project's architecture.",
-      "Use ARX BE to review this backend change for correctness, security, and maintainability."
+      "Use ARX BE to implement this backend task while preserving the project's architecture and conventions.",
+      "Use ARX BE to debug this backend issue, identify the root cause, and verify the smallest safe fix.",
+      "Use ARX BE to review this backend change for correctness, security, data integrity, failure behavior, and maintainability."
     ],
     "websiteURL": "https://github.com/aryanibos/arx-backend"
   },

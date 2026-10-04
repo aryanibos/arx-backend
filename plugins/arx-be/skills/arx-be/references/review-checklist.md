@@ -1,73 +1,77 @@
 # Backend Review Checklist
 
-Use only applicable items.
+Use only applicable items. Prioritize real merge risk over stylistic preference.
 
 ## Correctness
-- [ ] Acceptance criteria are actually implemented.
-- [ ] Edge cases and failure paths are handled.
-- [ ] No unrelated scope was introduced.
+
+- [ ] Acceptance criteria are implemented.
+- [ ] State transitions and edge cases are correct.
+- [ ] Failure paths do not leave unsafe or contradictory state.
+- [ ] No unrelated behavior change was introduced.
 
 ## Architecture
-- [ ] Route only registers HTTP/middleware.
-- [ ] Handler has no direct database queries.
-- [ ] Service owns business orchestration.
-- [ ] Repository owns persistence only.
-- [ ] Service does not depend on HTTP framework context.
-- [ ] Cross-module boundaries are explicit.
-- [ ] No architecture drift from HLD/ADR.
 
-## Data
-- [ ] Constraints protect real invariants.
-- [ ] Transaction boundary is correct.
-- [ ] Partial failure across DB/queue/storage is considered.
-- [ ] Migration is forward-safe.
-- [ ] Indexes have a real reason.
-- [ ] Query patterns are bounded.
+- [ ] Project HLD/ADR/repository conventions are preserved.
+- [ ] Transport, business, and persistence responsibilities are separated according to project architecture.
+- [ ] Transaction boundaries live at the correct application boundary.
+- [ ] Cross-module dependencies use intentional public contracts.
+- [ ] No new pattern or abstraction was introduced without a real need.
+
+## Data integrity
+
+- [ ] Database constraints protect concurrency-sensitive invariants.
+- [ ] Transaction scope is correct and not unnecessarily broad.
+- [ ] Partial failure across DB/queue/storage/external APIs is considered.
+- [ ] Migration is forward-safe and compatible with deployment strategy.
+- [ ] Query patterns are bounded and correctly scoped.
 
 ## Security
+
 - [ ] Authentication requirement is correct.
-- [ ] Authorization is server-side.
-- [ ] Object-level authorization exists where required.
-- [ ] Input is validated.
-- [ ] Secrets are not committed/logged.
+- [ ] Authorization is server-side and resource-scoped where required.
+- [ ] External input is validated at the correct boundary.
+- [ ] Injection, SSRF, path/file, and deserialization risks are considered where applicable.
+- [ ] Secrets and sensitive values are not committed, returned, or logged.
 - [ ] Errors are sanitized.
-- [ ] Storage access is private/authorized.
-- [ ] Resource abuse/file size/rate concerns are considered.
+- [ ] Rate/resource abuse is considered for expensive endpoints or uploads.
 
-## Queue / Worker
-- [ ] Job is idempotent where retries are possible.
-- [ ] Retry policy distinguishes transient/permanent failures.
-- [ ] Job payload is versioned if long-lived.
-- [ ] Large/sensitive content is not placed in queue unnecessarily.
-- [ ] Graceful shutdown is safe.
+## Queue / worker
 
-## Storage
-- [ ] Business logic is provider-neutral.
-- [ ] No credentials or signed URLs in logs.
-- [ ] Object keys avoid unnecessary sensitive data.
+- [ ] Job behavior is idempotent where retries/duplicates are possible.
+- [ ] Retry policy distinguishes transient and permanent failures.
+- [ ] Payload compatibility/versioning is adequate for queued lifetime.
+- [ ] Large or sensitive data is not queued unnecessarily.
+- [ ] Graceful shutdown and interrupted work are safe.
+
+## Storage / uploads
+
+- [ ] Storage access is private and authorized.
 - [ ] Signed URL expiry is bounded.
+- [ ] Credentials and signed URLs are not logged.
+- [ ] Object keys avoid raw untrusted filenames and unnecessary sensitive data.
+- [ ] DB/storage partial-failure behavior is understood.
+- [ ] Upload limits and content validation are appropriate.
 
 ## Testing
-- [ ] Happy path tested.
-- [ ] Important error paths tested.
-- [ ] Authorization-negative case tested when applicable.
-- [ ] Migration/integration behavior tested when relevant.
-- [ ] Tests do not depend on production services.
+
+- [ ] Happy path is tested.
+- [ ] Important error paths are tested.
+- [ ] Authorization-negative paths are tested where relevant.
+- [ ] Regression coverage exists for fixed bugs when practical.
+- [ ] Integration/migration behavior is tested where boundary behavior matters.
+- [ ] Tests do not depend on production services or execution order.
 
 ## Maintainability
-- [ ] Types are strict.
-- [ ] No `any`.
-- [ ] No `@ts-ignore`.
-- [ ] No god file/module.
-- [ ] No speculative abstraction.
-- [ ] Comments explain why.
-- [ ] Dependencies are justified.
+
+- [ ] Types remain strict and unsafe escapes are justified narrowly.
+- [ ] No stale/dead/debug code remains.
+- [ ] Responsibilities remain understandable.
+- [ ] Comments explain non-obvious reasons or invariants.
+- [ ] New dependencies are justified.
 
 ## Verification
-- [ ] Type-check passes.
-- [ ] Lint passes.
-- [ ] Format check passes.
-- [ ] Tests pass.
-- [ ] Build passes.
-- [ ] Diff reviewed.
-- [ ] Secret/debug artifact check completed.
+
+- [ ] Relevant targeted checks pass.
+- [ ] Repository quality gates pass or gaps are explicitly reported.
+- [ ] Final diff was reviewed.
+- [ ] Secret/debug/generated-artifact checks were completed.

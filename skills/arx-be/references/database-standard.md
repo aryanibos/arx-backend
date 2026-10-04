@@ -1,56 +1,73 @@
 # Database Standard
 
-## PostgreSQL
-Prefer PostgreSQL for relational application state when not otherwise specified.
+Use this reference for relational schema, PostgreSQL, Drizzle, transactions, migrations, indexing, and query review.
 
-## Naming
-Default:
-- tables: plural snake_case
-- columns: snake_case
-- indexes: descriptive snake_case
+## Database choice and naming
+
+Prefer PostgreSQL only when the project has not already selected another data store.
+
+When no project convention exists, default to:
+
+- plural `snake_case` tables
+- `snake_case` columns
+- descriptive `snake_case` indexes and constraints
 - UUID primary keys where appropriate
-- timestamptz for timestamps
+- `timestamptz` timestamps
+- `created_at` and `updated_at` for mutable records where useful
 
-## Constraints
-Use the database to enforce real invariants:
-- NOT NULL
-- UNIQUE
-- FOREIGN KEY
-- CHECK where appropriate
+## Constraints and invariants
 
-Do not rely only on application checks for invariants that must survive concurrency.
+Use the database to enforce invariants that must survive concurrency:
 
-## Indexing
-Add indexes for:
-- demonstrated query patterns
-- uniqueness
-- common foreign-key access
-- measured performance requirements
+- `NOT NULL`
+- `UNIQUE`
+- `FOREIGN KEY`
+- `CHECK` where appropriate
 
-Avoid speculative indexing.
+Do not rely only on application pre-checks for concurrency-sensitive uniqueness or referential integrity.
 
 ## Transactions
-Transaction boundaries belong to the use case/service layer.
 
-Repositories should support injected transaction handles where coordinated writes are required.
+A transaction should protect one logical atomic database operation.
+
+Keep transaction orchestration in the application/service layer when the architecture supports it. Allow repositories to use an injected transaction handle when coordinated writes are required.
+
+Think about isolation, locking, retries, and deadlocks for concurrent operations.
+
+A database transaction cannot atomically commit S3, Redis, queue, or external-API side effects. Model those failure windows separately using idempotency, outbox/state-machine patterns, or compensating actions only when requirements justify them.
 
 ## Migrations
-- use the approved migration tool
+
+- use the project's approved migration tool
 - never rewrite migrations already applied in shared environments
-- keep logical changes focused
-- rebase before generating migrations if branch conflicts are possible
-- review locking/backfill risks
-- verify clean-database application
+- keep migrations focused and reviewable
+- review lock duration, backfill cost, defaults, and nullability transitions
+- preserve backward compatibility during rolling deploys when required
+- verify clean-database application when practical
+- keep generated migration state synchronized with schema definitions
 
-## Query Review
-Check:
-- N+1
-- unbounded scans
-- missing filters
+## Indexing
+
+Add indexes for demonstrated access patterns, uniqueness, common foreign-key access, or measured performance requirements.
+
+Avoid speculative indexing. Review write amplification and index size where relevant.
+
+## Query review
+
+Check for:
+
+- N+1 access patterns
+- unbounded scans or lists
+- missing tenant/resource filters
 - unsafe dynamic SQL
-- pagination
-- lock behavior
-- connection usage
+- pagination correctness
+- unexpected lock behavior
+- transaction scope
+- connection usage and pool pressure
+- unnecessary round trips
 
-## Integration Testing
-Use disposable/local/CI database state. Never use production or a developer's normal persistent database for automated integration tests.
+Inspect query plans for performance-sensitive work instead of guessing.
+
+## Integration testing
+
+Use disposable/local/CI database state for automated integration tests. Never point automated tests at production or a developer's normal persistent database.

@@ -1,54 +1,84 @@
-# Backend Standard
+# Backend Architecture Standard
 
-Use this reference for backend module design and implementation review.
+Use this reference for module design, boundary changes, and architecture review.
 
-## Default Direction
+## Project architecture wins
 
-Prefer:
+Follow the repository's approved architecture. Do not mechanically introduce a layered REST structure into a project that already uses another coherent model.
+
+When the project uses layered REST modules, prefer:
 
 `Route -> Handler -> Service -> Repository`
 
-when the project architecture uses layered REST modules.
-
-Do not introduce this structure mechanically into projects that already have another approved architecture.
-
 ## Route
-Own HTTP registration and middleware composition.
+
+Own:
+- HTTP method and path
+- route registration
+- middleware composition
+- route-level authorization middleware when appropriate
+
+Do not own database queries, transactions, business decisions, or substantial request processing.
 
 ## Handler
-Own HTTP translation:
-- params/query/body parsing
-- validation
-- call service
-- status/envelope mapping
 
-No direct DB query.
+Own:
+- path/query/body extraction
+- HTTP-facing validation
+- service/use-case invocation
+- application-result to HTTP-response mapping
 
-## Service
+Do not query the database directly, own transaction boundaries, or contain core business rules.
+
+## Service / application layer
+
 Own:
 - business rules
-- orchestration
-- transaction boundary
-- repository/infrastructure coordination
+- use-case orchestration
+- transaction boundaries
+- repository and infrastructure coordination
+- application/domain errors
 
-No Hono Context or raw Response.
+Do not depend on Hono `Context`, construct raw HTTP responses, or depend on frontend concerns.
 
-## Repository
-Own persistence and database queries.
+## Repository / persistence layer
 
-No:
-- HTTP
-- business decisions
-- authorization policy
-- user-facing messages
+Own:
+- persistence operations
+- Drizzle/SQL queries
+- persistence-oriented mapping
 
-## Cross-module Calls
-Prefer explicit exported services/ports. Do not import another module's private repository or handler.
+Do not know HTTP, decide authorization policy, produce user-facing messages, or own workflow decisions.
 
-## Review Questions
-- Is business logic in the service/application layer?
-- Is HTTP isolated from business logic?
-- Are transaction boundaries explicit?
-- Are external failures handled?
-- Is the change smaller than necessary?
-- Did the implementation create a new pattern without need?
+## Cross-module boundaries
+
+Do not import another module's private handler or repository to bypass its public boundary.
+
+Prefer:
+- exported application/service functions
+- explicit ports where decoupling is required
+- genuinely shared schemas/contracts
+
+Avoid circular dependencies. Do not move domain-specific code into `shared` merely to hide a dependency problem.
+
+## Maintainability
+
+Prefer one clear responsibility per module and explicit data flow.
+
+Treat unusually large or multi-purpose files as a review signal, not an automatic line-count violation. Split when responsibilities, change reasons, or testing boundaries become unclear.
+
+Comments should explain why, invariants, compatibility constraints, or non-obvious failure behavior rather than narrating obvious code.
+
+Avoid speculative abstractions, hidden side effects, and design patterns added only for appearance.
+
+## Performance boundary review
+
+Before changing architecture for performance:
+
+1. identify the bottleneck
+2. measure it
+3. inspect query/request behavior
+4. change the smallest relevant layer
+5. verify the improvement
+
+Watch for N+1 queries, unbounded lists, large payloads, synchronous CPU-heavy work, excessive external calls, and poorly bounded concurrency.
