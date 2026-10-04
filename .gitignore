@@ -4,3 +4,5 @@ Thumbs.db
 .env.*
 !.env.example
 *.log
+dist/
+__pycache__/

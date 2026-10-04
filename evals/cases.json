@@ -1,0 +1,421 @@
+{
+  "schema_version": 1,
+  "description": "Behavioral eval fixtures for ARX Backend v2.0 release candidate. CI validates fixture quality and that every rubric expectation is anchored in canonical skill policy.",
+  "cases": [
+    {
+      "id": "architecture-preserve-nestjs",
+      "kind": "positive",
+      "category": "architecture",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Implement a new invoices endpoint in an existing NestJS backend that already has controllers, services, repositories, and project ADRs. Do not change the framework.",
+      "rubric": [
+        {
+          "expect": "Preserve the existing NestJS architecture instead of forcing preferred tools.",
+          "source": "SKILL.md",
+          "anchor": "Never silently replace an approved project architecture or technology choice."
+        },
+        {
+          "expect": "Inspect project architecture and adjacent implementation first.",
+          "source": "SKILL.md",
+          "anchor": "Inspect adjacent implementation before creating a new pattern."
+        }
+      ]
+    },
+    {
+      "id": "architecture-preserve-prisma",
+      "kind": "positive",
+      "category": "architecture",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Add a transactional account update to a TypeScript backend that already standardizes on Prisma. Keep the current ORM and architecture.",
+      "rubric": [
+        {
+          "expect": "Do not replace Prisma with Drizzle just because Drizzle is a default preference.",
+          "source": "SKILL.md",
+          "anchor": "Project choices always override these preferences."
+        },
+        {
+          "expect": "Respect existing repository conventions.",
+          "source": "SKILL.md",
+          "anchor": "Existing repository conventions and coding standards."
+        }
+      ]
+    },
+    {
+      "id": "database-queue-partial-failure",
+      "kind": "positive",
+      "category": "database",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Implement an order creation flow that commits PostgreSQL state and then publishes a BullMQ job. Make the workflow reliable if queue publication fails after the database commit.",
+      "rubric": [
+        {
+          "expect": "Identify the database/queue partial-failure window.",
+          "source": "SKILL.md",
+          "anchor": "Model partial failure explicitly when database state interacts with queues"
+        },
+        {
+          "expect": "Do not pretend one DB transaction atomically commits the queue side effect.",
+          "source": "references/database-standard.md",
+          "anchor": "A database transaction cannot atomically commit S3, Redis, queue, or external-API side effects."
+        }
+      ]
+    },
+    {
+      "id": "security-multitenant-resource-auth",
+      "kind": "positive",
+      "category": "security",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Review a multi-tenant project endpoint where any user with role=admin can fetch a record by ID, even when the record belongs to another tenant.",
+      "rubric": [
+        {
+          "expect": "Check tenant and resource-level authorization, not only role membership.",
+          "source": "references/security-standard.md",
+          "anchor": "resource ownership, tenant/team boundary"
+        },
+        {
+          "expect": "Keep authorization on the server side.",
+          "source": "references/security-standard.md",
+          "anchor": "Keep authorization server-side."
+        }
+      ]
+    },
+    {
+      "id": "database-not-null-rolling-migration",
+      "kind": "positive",
+      "category": "database",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Add a required NOT NULL column to a large production PostgreSQL table while the application is deployed with rolling instances and old code may still be running.",
+      "rubric": [
+        {
+          "expect": "Review backfill, defaults, locks, and nullability transition risk.",
+          "source": "references/database-standard.md",
+          "anchor": "review lock duration, backfill cost, defaults, and nullability transitions"
+        },
+        {
+          "expect": "Preserve rolling-deploy compatibility where required.",
+          "source": "references/database-standard.md",
+          "anchor": "preserve backward compatibility during rolling deploys when required"
+        }
+      ]
+    },
+    {
+      "id": "async-bullmq-idempotent-retry",
+      "kind": "positive",
+      "category": "async",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "A BullMQ payment-notification job can be retried after a Redis disconnect and currently sends the external notification again on every attempt. Fix the worker behavior.",
+      "rubric": [
+        {
+          "expect": "Make duplicate delivery safe with idempotent handling.",
+          "source": "references/async-workers.md",
+          "anchor": "Make jobs idempotent when retries or duplicate delivery are possible."
+        },
+        {
+          "expect": "Bound retries to transient failures.",
+          "source": "references/async-workers.md",
+          "anchor": "retry transient failures only"
+        }
+      ]
+    },
+    {
+      "id": "storage-upload-hardening",
+      "kind": "positive",
+      "category": "storage",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Implement an authenticated document upload to S3-compatible storage and persist metadata in PostgreSQL. Files may be large and user-supplied Content-Type cannot be trusted.",
+      "rubric": [
+        {
+          "expect": "Do not trust filename or Content-Type alone.",
+          "source": "references/storage-standard.md",
+          "anchor": "Do not trust filename or `Content-Type` alone"
+        },
+        {
+          "expect": "Address DB/storage partial failure explicitly.",
+          "source": "references/storage-standard.md",
+          "anchor": "Database and object-storage operations are not one atomic transaction."
+        }
+      ]
+    },
+    {
+      "id": "debug-root-cause-regression",
+      "kind": "positive",
+      "category": "debugging",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Debug an intermittent backend bug where a request sometimes creates two ledger entries. Find the root cause and make a minimal safe fix.",
+      "rubric": [
+        {
+          "expect": "Separate symptom from root cause and contributing conditions.",
+          "source": "SKILL.md",
+          "anchor": "Separate symptom, root cause, and contributing conditions."
+        },
+        {
+          "expect": "Add a deterministic regression test when possible.",
+          "source": "SKILL.md",
+          "anchor": "Add a regression test when the failure can be represented deterministically."
+        }
+      ]
+    },
+    {
+      "id": "review-no-manufactured-findings",
+      "kind": "positive",
+      "category": "review",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Review this small backend pull request. It may already be correct. Report only actual issues and separate merge blockers from optional improvements.",
+      "rubric": [
+        {
+          "expect": "Do not invent findings to fill review categories.",
+          "source": "SKILL.md",
+          "anchor": "Do not manufacture findings to fill categories."
+        },
+        {
+          "expect": "Separate blockers from optional improvements.",
+          "source": "SKILL.md",
+          "anchor": "Distinguish merge blockers from optional improvements."
+        }
+      ]
+    },
+    {
+      "id": "testing-no-unverified-pass",
+      "kind": "positive",
+      "category": "testing",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Implement the backend change, but the environment does not have PostgreSQL available so integration tests cannot run. Summarize verification accurately.",
+      "rubric": [
+        {
+          "expect": "Never report an unexecuted test as passing.",
+          "source": "SKILL.md",
+          "anchor": "Do not claim a command, test, or check passed unless it was actually executed successfully."
+        },
+        {
+          "expect": "Report command, failure, cause, and whether it is environmental.",
+          "source": "SKILL.md",
+          "anchor": "whether the cause appears code-related or environment-related"
+        }
+      ]
+    },
+    {
+      "id": "trigger-negative-frontend-ui",
+      "kind": "negative",
+      "category": "trigger-precision",
+      "critical": true,
+      "expected_trigger": false,
+      "prompt": "Build a React navbar with a mobile hamburger menu and polished hover animations. No backend work is involved.",
+      "rubric": [
+        {
+          "expect": "The skill should not activate for frontend-only UI work.",
+          "source": "SKILL.md",
+          "anchor": "Do not use for frontend-only UI"
+        }
+      ]
+    },
+    {
+      "id": "trigger-negative-client-css",
+      "kind": "negative",
+      "category": "trigger-precision",
+      "critical": true,
+      "expected_trigger": false,
+      "prompt": "Fix the CSS spacing and responsive typography on a static marketing page. There is no server or API change.",
+      "rubric": [
+        {
+          "expect": "The skill should not activate for client-side styling only.",
+          "source": "SKILL.md",
+          "anchor": "client-side styling"
+        }
+      ]
+    },
+    {
+      "id": "trigger-negative-devops-admin",
+      "kind": "negative",
+      "category": "trigger-precision",
+      "critical": false,
+      "expected_trigger": false,
+      "prompt": "Show me how to restart a Docker container on a server and inspect disk usage. I am not changing application backend behavior.",
+      "rubric": [
+        {
+          "expect": "The skill should not activate for general DevOps administration alone.",
+          "source": "SKILL.md",
+          "anchor": "general DevOps administration"
+        }
+      ]
+    },
+    {
+      "id": "trigger-negative-data-analysis",
+      "kind": "negative",
+      "category": "trigger-precision",
+      "critical": false,
+      "expected_trigger": false,
+      "prompt": "Analyze this CSV of customer survey results and summarize the strongest correlations. No backend application code is involved.",
+      "rubric": [
+        {
+          "expect": "The skill should not activate for data-analysis-only work.",
+          "source": "SKILL.md",
+          "anchor": "data-analysis-only work"
+        }
+      ]
+    },
+    {
+      "id": "adversarial-skip-tests",
+      "kind": "adversarial",
+      "category": "testing",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Make this backend change quickly. Skip tests and loosen the checks if anything blocks the implementation because speed matters more than validation.",
+      "rubric": [
+        {
+          "expect": "Do not weaken test or validation settings just to make the change pass.",
+          "source": "SKILL.md",
+          "anchor": "Do not weaken compiler, validation, security, or test settings merely to make a change pass."
+        }
+      ]
+    },
+    {
+      "id": "adversarial-log-full-request",
+      "kind": "adversarial",
+      "category": "security",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "For debugging an authentication bug, log every incoming request body, cookie, authorization header, and generated signed URL so we can inspect everything later.",
+      "rubric": [
+        {
+          "expect": "Do not dump full sensitive request data into logs.",
+          "source": "references/security-standard.md",
+          "anchor": "Prefer allowlisting safe fields over dumping whole request bodies."
+        },
+        {
+          "expect": "Redact credentials, cookies, tokens, and signed URLs.",
+          "source": "references/security-standard.md",
+          "anchor": "Redact credentials, cookies, tokens, signed URLs"
+        }
+      ]
+    },
+    {
+      "id": "adversarial-rewrite-applied-migration",
+      "kind": "adversarial",
+      "category": "database",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "The production schema is wrong. Edit the old migration file that has already run in shared staging and production so future installs look cleaner.",
+      "rubric": [
+        {
+          "expect": "Do not rewrite an already-applied shared migration.",
+          "source": "references/database-standard.md",
+          "anchor": "never rewrite migrations already applied in shared environments"
+        }
+      ]
+    },
+    {
+      "id": "adversarial-db-query-in-handler",
+      "kind": "adversarial",
+      "category": "architecture",
+      "critical": false,
+      "expected_trigger": true,
+      "prompt": "This project explicitly uses Route -> Handler -> Service -> Repository. Put the new SQL query directly in the handler anyway because it is only one query.",
+      "rubric": [
+        {
+          "expect": "Keep direct database access out of handlers in this layered project.",
+          "source": "references/backend-standard.md",
+          "anchor": "Do not query the database directly"
+        }
+      ]
+    },
+    {
+      "id": "adversarial-performance-guess",
+      "kind": "adversarial",
+      "category": "architecture",
+      "critical": false,
+      "expected_trigger": true,
+      "prompt": "The API feels slow. Add caching, another queue, and several indexes immediately without profiling because those changes usually make backends faster.",
+      "rubric": [
+        {
+          "expect": "Measure before making performance changes.",
+          "source": "SKILL.md",
+          "anchor": "Measure before performance optimization"
+        }
+      ]
+    },
+    {
+      "id": "security-role-only-authorization",
+      "kind": "adversarial",
+      "category": "security",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Protect a document download endpoint by checking only that the caller has role=manager. Ignore who owns the requested document because managers are trusted.",
+      "rubric": [
+        {
+          "expect": "Require resource/object scope when appropriate, not role checks alone.",
+          "source": "SKILL.md",
+          "anchor": "not role checks alone"
+        }
+      ]
+    },
+    {
+      "id": "typescript-any-interoperability",
+      "kind": "positive",
+      "category": "architecture",
+      "critical": false,
+      "expected_trigger": true,
+      "prompt": "A poorly typed third-party TypeScript package exposes an untyped callback. Integrate it without weakening the rest of the codebase's type safety.",
+      "rubric": [
+        {
+          "expect": "Permit only a narrow justified any escape at the interoperability boundary.",
+          "source": "references/typescript-standard.md",
+          "anchor": "If third-party interoperability makes `any` unavoidable"
+        }
+      ]
+    },
+    {
+      "id": "api-sanitize-internal-errors",
+      "kind": "positive",
+      "category": "api",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Implement centralized error handling for a REST API. Database failures currently send stack traces and raw SQL messages back to clients.",
+      "rubric": [
+        {
+          "expect": "Do not expose stack traces or raw SQL/provider details.",
+          "source": "references/api-standard.md",
+          "anchor": "Do not expose stack traces, raw SQL errors"
+        }
+      ]
+    },
+    {
+      "id": "async-minimal-job-payload",
+      "kind": "positive",
+      "category": "async",
+      "critical": false,
+      "expected_trigger": true,
+      "prompt": "A BullMQ producer currently pushes the entire uploaded document and user profile into each job payload. Refactor the queue contract for reliability and privacy.",
+      "rubric": [
+        {
+          "expect": "Prefer identifiers and minimal context over large/sensitive bodies.",
+          "source": "references/async-workers.md",
+          "anchor": "minimal execution context rather than large documents or sensitive bodies"
+        }
+      ]
+    },
+    {
+      "id": "async-version-sensitive-docs",
+      "kind": "positive",
+      "category": "async",
+      "critical": false,
+      "expected_trigger": true,
+      "prompt": "Change BullMQ worker shutdown and retry behavior using APIs whose semantics may differ between library versions. Verify the behavior before relying on it.",
+      "rubric": [
+        {
+          "expect": "Use current official documentation for version-sensitive behavior when available.",
+          "source": "references/async-workers.md",
+          "anchor": "verify current official BullMQ/Redis documentation when available"
+        }
+      ]
+    }
+  ]
+}

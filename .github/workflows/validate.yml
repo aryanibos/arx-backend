@@ -1,0 +1,52 @@
+name: Validate ARX Backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arx-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate repository and skill structure
+        run: python scripts/validate_repo.py
+
+      - name: Run deterministic contract evals
+        run: python scripts/run_evals.py
+
+      - name: Check canonical/plugin skill synchronization
+        run: ./scripts/check-skill-sync.sh
+
+      - name: Build deterministic skill package
+        run: |
+          python scripts/package_skill.py --output dist/skill.zip
+          cp dist/skill.zip /tmp/skill-first.zip
+          python scripts/package_skill.py --output dist/skill.zip
+          cmp /tmp/skill-first.zip dist/skill.zip
+
+      - name: Upload validated skill package
+        uses: actions/upload-artifact@v4
+        with:
+          name: arx-be-skill-package
+          path: dist/skill.zip
+          if-no-files-found: error
+          retention-days: 14

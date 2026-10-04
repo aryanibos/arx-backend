@@ -1,6 +1,6 @@
 ---
 name: arx-be
-description: Backend engineering workflow for implementing, modifying, debugging, refactoring, and reviewing backend applications. Use for REST APIs, TypeScript services, PostgreSQL/Drizzle repositories and migrations, Redis/BullMQ workers, S3-compatible storage, validation, authentication and authorization, transactions, backend testing, reliability, security reviews, and backend-focused pull request reviews. Preserve existing project architecture, ADRs, repository conventions, and explicit user instructions over this skill's defaults.
+description: Backend engineering workflow for implementing, modifying, debugging, refactoring, and reviewing backend applications. Use for REST APIs, TypeScript services, PostgreSQL/Drizzle repositories and migrations, Redis/BullMQ workers, S3-compatible storage, validation, authentication and authorization, transactions, backend testing, reliability, security reviews, and backend-focused pull request reviews. Preserve existing project architecture, ADRs, repository conventions, and explicit user instructions over this skill's defaults. Do not use for frontend-only UI, client-side styling, general DevOps administration, data-analysis-only work, or other non-backend application tasks unless backend behavior is materially involved.
 ---
 
 # ARX Backend
@@ -39,15 +39,15 @@ Do not create parallel conventions when an acceptable project convention already
 
 Read only the references relevant to the current task:
 
-- `references/backend-standard.md` — module boundaries, layered architecture, cross-module calls, maintainability.
-- `references/typescript-standard.md` — TypeScript strictness, typing, exports, dependency discipline.
-- `references/api-standard.md` — HTTP/REST contracts, validation, errors, pagination, idempotency.
-- `references/database-standard.md` — PostgreSQL, Drizzle, transactions, constraints, migrations, query review.
-- `references/security-standard.md` — authentication, authorization, secrets, logging, SSRF, file/path and abuse risks.
-- `references/async-workers.md` — Redis, BullMQ, retries, idempotency, worker lifecycle, delivery semantics.
-- `references/storage-standard.md` — S3-compatible object storage, signed URLs, uploads, consistency and key design.
-- `references/testing-verification.md` — test strategy, quality gates, command verification, final diff checks.
-- `references/review-checklist.md` — backend code and pull-request review checklist.
+- `references/backend-standard.md` - module boundaries, layered architecture, cross-module calls, maintainability.
+- `references/typescript-standard.md` - TypeScript strictness, typing, exports, dependency discipline.
+- `references/api-standard.md` - HTTP/REST contracts, validation, errors, pagination, idempotency.
+- `references/database-standard.md` - PostgreSQL, Drizzle, transactions, constraints, migrations, query review.
+- `references/security-standard.md` - authentication, authorization, secrets, logging, SSRF, file/path and abuse risks.
+- `references/async-workers.md` - Redis, BullMQ, retries, idempotency, worker lifecycle, delivery semantics.
+- `references/storage-standard.md` - S3-compatible object storage, signed URLs, uploads, consistency and key design.
+- `references/testing-verification.md` - test strategy, quality gates, command verification, final diff checks.
+- `references/review-checklist.md` - backend code and pull-request review checklist.
 
 When a task spans several domains, load the smallest set of references that covers the affected behavior.
 

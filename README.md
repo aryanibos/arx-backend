@@ -9,15 +9,22 @@
 
 > Project-specific architecture always wins. `arx-be` provides strong defaults and review discipline, but it never silently replaces an approved HLD, ADR, repository convention, or explicit task instruction.
 
-## Version 2.0
+## Version 2.0 release-candidate status
 
-Version 2.0 restructures the skill around progressive loading:
+Version 2.0 is intentionally not tagged yet. The repository is being hardened before the public `v2.0.0` release.
 
-- `SKILL.md` is the control plane for precedence, workflow, verification, and output contracts.
-- Domain standards are loaded from `references/` only when needed.
-- `agents/openai.yaml` provides ChatGPT skill UI metadata.
-- `skills/arx-be/` is the canonical source of truth.
-- The Codex plugin copy is synchronized with repository scripts to prevent drift.
+Current development version: **`2.0.0`**.
+
+Release gates now include:
+
+- structural repository and skill validation
+- canonical/plugin distribution synchronization
+- deterministic contract evals
+- positive, negative-trigger, and adversarial behavioral fixtures
+- deterministic `skill.zip` packaging and integrity verification
+- CI enforcement on pushes and pull requests
+
+A release tag should only be created after critical behavioral fixtures have also been executed against the intended target agents and meet the scoring policy in `evals/README.md`.
 
 ## Install
 
@@ -52,31 +59,32 @@ codex plugin marketplace add aryanibos/arx-backend
 
 Only when the project has not selected alternatives: TypeScript, Bun, Hono, PostgreSQL, Drizzle ORM, Zod, Redis/BullMQ, S3-compatible storage, Docker, `bun:test`, and Pino.
 
-## Usage
+## Quality gates
 
-```text
-Use arx-be to implement this backend task while following the project's architecture and coding standards.
+Run all deterministic release checks locally:
+
+```bash
+python scripts/validate_repo.py
+python scripts/run_evals.py
+./scripts/check-skill-sync.sh
+python scripts/package_skill.py
 ```
 
-```text
-Use arx-be to trace this backend failure to its root cause, make the smallest safe fix, and add regression coverage.
-```
+The package command creates `dist/skill.zip` only after repository validation passes.
 
-```text
-Use arx-be to review this backend change for correctness, security, data integrity, transaction boundaries, failure behavior, tests, and maintainability.
-```
+The eval suite intentionally separates deterministic policy/fixture validation from real target-agent behavior. See `evals/README.md` for the v2 release scoring threshold.
 
 ## Progressive references
 
-- `backend-standard.md` — architecture and module boundaries
-- `typescript-standard.md` — TypeScript and dependencies
-- `api-standard.md` — HTTP/REST contracts
-- `database-standard.md` — PostgreSQL/Drizzle/schema/migrations
-- `security-standard.md` — auth, secrets, and security risks
-- `async-workers.md` — Redis/BullMQ/background processing
-- `storage-standard.md` — S3-compatible storage and uploads
-- `testing-verification.md` — tests and quality gates
-- `review-checklist.md` — backend/PR review
+- `backend-standard.md` - architecture and module boundaries
+- `typescript-standard.md` - TypeScript and dependencies
+- `api-standard.md` - HTTP/REST contracts
+- `database-standard.md` - PostgreSQL/Drizzle/schema/migrations
+- `security-standard.md` - auth, secrets, and security risks
+- `async-workers.md` - Redis/BullMQ/background processing
+- `storage-standard.md` - S3-compatible storage and uploads
+- `testing-verification.md` - tests and quality gates
+- `review-checklist.md` - backend/PR review
 
 ## Repository structure
 
@@ -86,9 +94,19 @@ skills/arx-be/                         # canonical source
   agents/openai.yaml
   references/
 
+evals/
+  cases.json
+  README.md
+
 scripts/
+  validate_repo.py
+  run_evals.py
+  package_skill.py
   sync-skill.sh
   check-skill-sync.sh
+
+.github/workflows/
+  validate.yml
 
 plugins/arx-be/
   .codex-plugin/plugin.json
@@ -110,4 +128,4 @@ Never commit production credentials, API keys, access tokens, passwords, private
 
 ## Versioning
 
-Current version: **`2.0.0`**. See `CHANGELOG.md` for release changes.
+Current development version: **`2.0.0`**. It remains untagged until the v2 release gates pass.
