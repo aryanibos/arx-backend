@@ -73,7 +73,7 @@
         {
           "expect": "Check tenant and resource-level authorization, not only role membership.",
           "source": "references/security-standard.md",
-          "anchor": "resource ownership, tenant/team boundary"
+          "anchor": "tenant/team boundary"
         },
         {
           "expect": "Keep authorization on the server side.",
