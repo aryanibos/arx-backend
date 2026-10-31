@@ -40,7 +40,9 @@ The packaged copy at `plugins/arx-be/skills/arx-be/` must remain synchronized wi
 
 `python scripts/run_evals.py` is a deterministic contract check. It verifies fixture quality and that each behavioral expectation remains anchored in canonical policy.
 
-Before a major release tag, also execute the fixtures against intended target agents and score them using `evals/README.md`.
+Before a major release tag, also execute the fixtures against intended target agents, record the results in `evals/results/`, and confirm `python scripts/run_evals.py --release` passes. See `evals/README.md`.
+
+When an explicit instruction would break a safeguard, the skill names the risk and proposes a safe alternative (see "Conflicting instructions" in `SKILL.md`). Adversarial eval cases should test that behavior rather than plain refusal.
 
 ## Pull requests
 

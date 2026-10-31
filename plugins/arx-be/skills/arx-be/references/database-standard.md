@@ -34,6 +34,8 @@ Keep transaction orchestration in the application/service layer when the archite
 
 Think about isolation, locking, retries, and deadlocks for concurrent operations.
 
+Do not hold a transaction open across network calls to external APIs, object storage, or queues. Keep transactions short so locks and pooled connections are released quickly.
+
 A database transaction cannot atomically commit S3, Redis, queue, or external-API side effects. Model those failure windows separately using idempotency, outbox/state-machine patterns, or compensating actions only when requirements justify them.
 
 ## Migrations

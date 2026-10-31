@@ -3,6 +3,7 @@ name: Validate ARX Backend
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -15,8 +16,15 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Checkout
@@ -39,14 +47,56 @@ jobs:
       - name: Build deterministic skill package
         run: |
           python scripts/package_skill.py --output dist/skill.zip
-          cp dist/skill.zip /tmp/skill-first.zip
+          cp dist/skill.zip "$RUNNER_TEMP/skill-first.zip"
           python scripts/package_skill.py --output dist/skill.zip
-          cmp /tmp/skill-first.zip dist/skill.zip
+          cmp "$RUNNER_TEMP/skill-first.zip" dist/skill.zip
 
       - name: Upload validated skill package
         uses: actions/upload-artifact@v4
         with:
-          name: arx-be-skill-package
+          name: arx-be-skill-package-${{ runner.os }}
           path: dist/skill.zip
           if-no-files-found: error
           retention-days: 14
+
+  reproducible-package:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: arx-be-skill-package-*
+
+      - name: Require byte-identical packages across operating systems
+        run: |
+          sha256sum arx-be-skill-package-*/skill.zip
+          cmp arx-be-skill-package-Linux/skill.zip arx-be-skill-package-Windows/skill.zip
+
+  release-gate:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Require tag to match release version
+        run: |
+          version=$(python -c "import json; print(json.load(open('plugins/arx-be/.codex-plugin/plugin.json'))['version'])")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match plugin.json version $version" >&2
+            exit 1
+          fi
+
+      - name: Enforce recorded target-agent results
+        run: python scripts/run_evals.py --release

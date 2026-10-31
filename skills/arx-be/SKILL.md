@@ -21,6 +21,24 @@ Apply guidance in this order:
 
 Never silently replace an approved project architecture or technology choice.
 
+## Conflicting instructions
+
+Explicit instructions rank first for scope, design, and technology choices. They do not silently override these non-negotiable safeguards:
+
+- security and authorization boundaries
+- data integrity, including migrations already applied in shared environments
+- secret and sensitive-data handling
+- honest verification reporting
+
+When an instruction would break one of these safeguards, or a project convention the user has not explicitly asked to change:
+
+1. Name the specific risk and its concrete impact.
+2. Propose the smallest safe alternative that still meets the goal.
+3. Proceed with the unsafe variant only if the user explicitly accepts that named risk; record the accepted risk in the completion report.
+4. Never report a skipped, weakened, or unexecuted check as passing, even when asked to.
+
+Do not refuse or lecture over ordinary preferences. This applies only when a safeguard is actually at stake.
+
 ## Start every task by grounding in the project
 
 Before making a non-trivial backend change:
@@ -46,6 +64,7 @@ Read only the references relevant to the current task:
 - `references/security-standard.md` - authentication, authorization, secrets, logging, SSRF, file/path and abuse risks.
 - `references/async-workers.md` - Redis, BullMQ, retries, idempotency, worker lifecycle, delivery semantics.
 - `references/storage-standard.md` - S3-compatible object storage, signed URLs, uploads, consistency and key design.
+- `references/reliability-operations.md` - outbound call timeouts/retries, configuration, health checks, HTTP server shutdown.
 - `references/testing-verification.md` - test strategy, quality gates, command verification, final diff checks.
 - `references/review-checklist.md` - backend code and pull-request review checklist.
 
@@ -61,6 +80,8 @@ Keep these rules active across all backend work:
 - Use database constraints for invariants that must survive concurrency.
 - Put logical transaction boundaries in the application/service layer when the architecture supports it.
 - Model partial failure explicitly when database state interacts with queues, object storage, caches, or external APIs.
+- Do not hold a database transaction open across network calls to external APIs, object storage, or queues.
+- Give every outbound network call an explicit timeout.
 - Prefer strict types; avoid `any`, unsafe casts, non-null assertions, and suppression comments. When an exception is unavoidable, keep it narrow and explain the interoperability reason.
 - Return stable application/API errors and sanitize internal causes.
 - Never expose or log secrets, credentials, authorization headers, signed URLs, or sensitive payloads.
@@ -134,12 +155,14 @@ Review in this priority:
 10. performance
 11. style
 
-Use severity:
+If a dedicated review skill or the project's review process is active, use its report format and severity scale; this skill then supplies backend domain checks only.
 
-- Blocker
-- High
-- Medium
-- Low
+Otherwise use this severity scale:
+
+- P0 Critical - secret exposure, destructive data loss, or a critical exploitable flaw. Blocks merge.
+- P1 Blocker - broken correctness, security, data integrity, or core contract. Blocks merge.
+- P2 Required - missing required behavior, test, evidence, or enforced project rule. Blocks merge.
+- P3 Advisory - improvement with no correctness or required-standard impact. Does not block.
 
 Every finding must include:
 
@@ -167,7 +190,7 @@ Never convert an unexecuted check into a PASS.
 
 ## Completion report for implementation
 
-Return a concise report with:
+Return a concise report with the applicable sections; omit a section that does not apply instead of filling it with "none":
 
 ### Changed
 Major files/modules and behavior.
@@ -182,7 +205,7 @@ Commands actually executed and PASS/FAIL.
 Whether schema or migration changed and any compatibility concern.
 
 ### Security
-Relevant security and authorization considerations.
+Relevant security and authorization considerations, including any risk the user explicitly accepted.
 
 ### Known Limitations
 Only real limitations.

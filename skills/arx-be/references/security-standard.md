@@ -17,6 +17,29 @@ For protected operations consider:
 
 Keep authorization server-side. Do not treat frontend restrictions as a security boundary.
 
+## Sessions, tokens, and passwords
+
+- Prefer the project's established authentication library or provider over hand-rolled schemes.
+- Verify JWT signature with an explicit allowed algorithm list, and check expiry, issuer, and audience. Never accept `alg: none`.
+- Do not put secrets or unnecessary personal data in JWT claims; they are readable by the client.
+- Keep access tokens short-lived and define how sessions or refresh tokens are revoked.
+- Set session cookies with `HttpOnly`, `Secure`, and an appropriate `SameSite` value.
+- Hash passwords with a vetted slow algorithm such as Argon2id, scrypt, or bcrypt through a maintained library. Never store plaintext, reversible encryption, or fast hashes such as SHA-256 alone.
+- Compare secrets and tokens with constant-time comparison.
+
+## Browser-facing APIs
+
+- Configure CORS with an explicit origin allowlist. Never combine a wildcard origin with credentials or reflect arbitrary `Origin` values.
+- Protect state-changing endpoints that rely on cookie authentication against CSRF (`SameSite` plus a CSRF token or origin verification).
+- Serve user-uploaded content with a safe `Content-Type` and `Content-Disposition: attachment`, or from a separate origin, so it cannot execute as same-origin HTML.
+
+## Webhooks
+
+- Verify the provider signature against the raw request body before parsing or acting on it.
+- Reject stale timestamps and replayed event IDs within the provider's tolerance window.
+- Process webhook events idempotently; providers deliver at least once.
+- Respond quickly and move slow work to a background job.
+
 ## Input and injection
 
 Validate all external input. Use parameterized queries and safe library APIs. Review dynamic SQL, shell execution, template injection, unsafe parsing/deserialization, and user-controlled path or URL construction.

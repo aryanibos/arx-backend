@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import stat
+import subprocess
 import sys
 from pathlib import Path
 
@@ -75,6 +77,33 @@ def compare_trees(a: Path, b: Path) -> list[str]:
         if a_files[rel].read_bytes() != b_files[rel].read_bytes():
             errors.append(f"skill distribution differs: {rel}")
     return errors
+
+
+def git_index_mode(path: Path) -> str | None:
+    """Return the git index file mode (e.g. 100755), or None when git cannot tell."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(ROOT), "ls-files", "-s", "--", path.relative_to(ROOT).as_posix()],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return None
+    if result.returncode != 0 or not result.stdout.strip():
+        return None
+    return result.stdout.split(maxsplit=1)[0]
+
+
+def is_executable(path: Path) -> bool | None:
+    # The git index is authoritative for the mode that ships; Windows filesystems
+    # do not carry an executable bit at all.
+    mode = git_index_mode(path)
+    if mode is not None:
+        return mode == "100755"
+    if os.name == "nt":
+        return None
+    return bool(path.stat().st_mode & stat.S_IXUSR)
 
 
 def validate_local_markdown_links(path: Path, text: str) -> list[str]:
@@ -206,7 +235,8 @@ def validate_repo(root: Path = ROOT) -> list[str]:
     changelog_match = re.search(r"^## \[([^\]]+)\] - (?:Unreleased|\d{4}-\d{2}-\d{2})\s*$", changelog_text, re.MULTILINE)
     versions = {
         "plugin.json": version,
-        "README badge": badge_match.group(1) if badge_match else "",
+        # shields.io escapes a literal dash as "--" inside badge text.
+        "README badge": badge_match.group(1).replace("--", "-") if badge_match else "",
         "README current development version": current_match.group(1) if current_match else "",
         "CHANGELOG top version": changelog_match.group(1) if changelog_match else "",
     }
@@ -217,16 +247,24 @@ def validate_repo(root: Path = ROOT) -> list[str]:
 
     errors.extend(compare_trees(SKILL_ROOT, PLUGIN_SKILL_ROOT))
 
+    # CRLF checkouts would change the packaged bytes and break reproducible builds.
+    for path in sorted(SKILL_ROOT.rglob("*")):
+        if path.is_file() and b"\r\n" in path.read_bytes():
+            errors.append(f"{path.relative_to(ROOT).as_posix()} must use LF line endings")
+
     for script_name in ("sync-skill.sh", "check-skill-sync.sh"):
         path = ROOT / "scripts" / script_name
-        mode = path.stat().st_mode
-        if not mode & stat.S_IXUSR:
-            errors.append(f"{path.relative_to(ROOT)} must be executable")
+        if is_executable(path) is False:
+            errors.append(f"{path.relative_to(ROOT).as_posix()} must be executable")
 
     gitignore = read_text(ROOT / ".gitignore") if (ROOT / ".gitignore").exists() else ""
     for item in ("dist/", "__pycache__/"):
         if item not in gitignore:
             errors.append(f".gitignore should include {item}")
+
+    gitattributes = read_text(ROOT / ".gitattributes") if (ROOT / ".gitattributes").exists() else ""
+    if not re.search(r"^\*\s+.*\beol=lf\b", gitattributes, re.MULTILINE):
+        errors.append(".gitattributes must normalize text files with eol=lf")
 
     for path in ROOT.rglob("*"):
         if not path.is_file() or ".git" in path.parts or "dist" in path.parts:

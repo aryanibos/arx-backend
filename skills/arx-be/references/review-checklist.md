@@ -34,6 +34,15 @@ Use only applicable items. Prioritize real merge risk over stylistic preference.
 - [ ] Secrets and sensitive values are not committed, returned, or logged.
 - [ ] Errors are sanitized.
 - [ ] Rate/resource abuse is considered for expensive endpoints or uploads.
+- [ ] Tokens, sessions, cookies, CORS, CSRF, and password storage follow `security-standard.md` where touched.
+- [ ] Webhooks verify signatures on the raw body and reject replays.
+
+## Reliability
+
+- [ ] Outbound calls have explicit timeouts and bounded, idempotency-safe retries.
+- [ ] No database transaction is held open across network I/O.
+- [ ] Configuration is validated at startup and fails fast without leaking secrets.
+- [ ] Health checks separate liveness from readiness.
 
 ## Queue / worker
 

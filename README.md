@@ -1,6 +1,6 @@
 # ARX Backend
 
-[![Version](https://img.shields.io/badge/version-2.0.0-111827)](https://github.com/aryanibos/arx-backend/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0--rc.1-111827)](https://github.com/aryanibos/arx-backend/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-16a34a.svg)](LICENSE)
 [![Codex Plugin](https://img.shields.io/badge/Codex-plugin-111827)](https://developers.openai.com/plugins/)
 [![Agent Skill](https://img.shields.io/badge/Agent%20Skill-cross--agent-7c3aed)](https://skills.sh/)
@@ -13,7 +13,7 @@
 
 Version 2.0 is intentionally not tagged yet. The repository is being hardened before the public `v2.0.0` release.
 
-Current development version: **`2.0.0`**.
+Current development version: **`2.0.0-rc.1`**.
 
 Release gates now include:
 
@@ -21,10 +21,11 @@ Release gates now include:
 - canonical/plugin distribution synchronization
 - deterministic contract evals
 - positive, negative-trigger, and adversarial behavioral fixtures
-- deterministic `skill.zip` packaging and integrity verification
+- deterministic `skill.zip` packaging and integrity verification, reproducible across Linux and Windows
 - CI enforcement on pushes and pull requests
+- recorded target-agent results enforced by `python scripts/run_evals.py --release` on version tags
 
-A release tag should only be created after critical behavioral fixtures have also been executed against the intended target agents and meet the scoring policy in `evals/README.md`.
+A release tag should only be created after the fixtures have been executed against the intended target agents, recorded in `evals/results/`, and meet the scoring policy in `evals/README.md`. When that passes, set the version to `2.0.0` in all release metadata and tag `v2.0.0`.
 
 ## Install
 
@@ -50,9 +51,9 @@ codex plugin marketplace add aryanibos/arx-backend
 | Database | PostgreSQL, Drizzle, migrations, transactions, constraints |
 | Async | Redis, BullMQ, retries, idempotency, graceful shutdown |
 | Storage | S3-compatible storage, uploads, signed URL safety |
-| Security | AuthN/AuthZ, object access, secrets, SSRF/path/file risks |
+| Security | AuthN/AuthZ, sessions/tokens, CORS/CSRF, webhooks, secrets, SSRF/path/file risks |
 | Testing | Unit, integration, contract tests, deterministic verification |
-| Reliability | Partial failures, transaction boundaries, retry semantics |
+| Reliability | Partial failures, timeouts, configuration, health checks, retry semantics |
 | Review | Correctness, security, data integrity, maintainability |
 
 ## Default preferences
@@ -83,6 +84,7 @@ The eval suite intentionally separates deterministic policy/fixture validation f
 - `security-standard.md` - auth, secrets, and security risks
 - `async-workers.md` - Redis/BullMQ/background processing
 - `storage-standard.md` - S3-compatible storage and uploads
+- `reliability-operations.md` - outbound calls, configuration, health checks, shutdown
 - `testing-verification.md` - tests and quality gates
 - `review-checklist.md` - backend/PR review
 
@@ -97,6 +99,7 @@ skills/arx-be/                         # canonical source
 evals/
   cases.json
   README.md
+  results/                             # recorded target-agent runs (release gate)
 
 scripts/
   validate_repo.py
@@ -128,4 +131,4 @@ Never commit production credentials, API keys, access tokens, passwords, private
 
 ## Versioning
 
-Current development version: **`2.0.0`**. It remains untagged until the v2 release gates pass.
+Current development version: **`2.0.0-rc.1`**. It remains untagged until the v2 release gates pass.

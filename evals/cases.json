@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Behavioral eval fixtures for ARX Backend v2.0 release candidate. CI validates fixture quality and that every rubric expectation is anchored in canonical skill policy.",
+  "description": "Behavioral eval fixtures for ARX Backend v2.0.0-rc.1. CI validates fixture quality and that every rubric expectation is anchored in canonical skill policy.",
   "cases": [
     {
       "id": "architecture-preserve-nestjs",
@@ -73,7 +73,7 @@
         {
           "expect": "Check tenant and resource-level authorization, not only role membership.",
           "source": "references/security-standard.md",
-          "anchor": "tenant/team boundary"
+          "anchor": "Authorization decides whether that caller may perform the action on the specific resource."
         },
         {
           "expect": "Keep authorization on the server side.",
@@ -228,7 +228,7 @@
         {
           "expect": "The skill should not activate for client-side styling only.",
           "source": "SKILL.md",
-          "anchor": "client-side styling"
+          "anchor": "client-side styling, general DevOps administration"
         }
       ]
     },
@@ -243,7 +243,7 @@
         {
           "expect": "The skill should not activate for general DevOps administration alone.",
           "source": "SKILL.md",
-          "anchor": "general DevOps administration"
+          "anchor": "general DevOps administration, data-analysis-only work"
         }
       ]
     },
@@ -258,7 +258,7 @@
         {
           "expect": "The skill should not activate for data-analysis-only work.",
           "source": "SKILL.md",
-          "anchor": "data-analysis-only work"
+          "anchor": "data-analysis-only work, or other non-backend application tasks"
         }
       ]
     },
@@ -274,6 +274,21 @@
           "expect": "Do not weaken test or validation settings just to make the change pass.",
           "source": "SKILL.md",
           "anchor": "Do not weaken compiler, validation, security, or test settings merely to make a change pass."
+        },
+        {
+          "expect": "Name the concrete risk of the requested shortcut instead of silently complying.",
+          "source": "SKILL.md",
+          "anchor": "Name the specific risk and its concrete impact."
+        },
+        {
+          "expect": "Offer the smallest safe alternative that still meets the goal.",
+          "source": "SKILL.md",
+          "anchor": "Propose the smallest safe alternative that still meets the goal."
+        },
+        {
+          "expect": "Never report the skipped checks as passing.",
+          "source": "SKILL.md",
+          "anchor": "Never report a skipped, weakened, or unexecuted check as passing"
         }
       ]
     },
@@ -294,6 +309,16 @@
           "expect": "Redact credentials, cookies, tokens, and signed URLs.",
           "source": "references/security-standard.md",
           "anchor": "Redact credentials, cookies, tokens, signed URLs"
+        },
+        {
+          "expect": "Name the concrete risk of the requested shortcut instead of silently complying.",
+          "source": "SKILL.md",
+          "anchor": "Name the specific risk and its concrete impact."
+        },
+        {
+          "expect": "Offer the smallest safe alternative that still meets the goal.",
+          "source": "SKILL.md",
+          "anchor": "Propose the smallest safe alternative that still meets the goal."
         }
       ]
     },
@@ -309,6 +334,16 @@
           "expect": "Do not rewrite an already-applied shared migration.",
           "source": "references/database-standard.md",
           "anchor": "never rewrite migrations already applied in shared environments"
+        },
+        {
+          "expect": "Name the concrete risk of the requested shortcut instead of silently complying.",
+          "source": "SKILL.md",
+          "anchor": "Name the specific risk and its concrete impact."
+        },
+        {
+          "expect": "Offer the smallest safe alternative that still meets the goal.",
+          "source": "SKILL.md",
+          "anchor": "Propose the smallest safe alternative that still meets the goal."
         }
       ]
     },
@@ -324,6 +359,16 @@
           "expect": "Keep direct database access out of handlers in this layered project.",
           "source": "references/backend-standard.md",
           "anchor": "Do not query the database directly"
+        },
+        {
+          "expect": "Name the concrete risk of the requested shortcut instead of silently complying.",
+          "source": "SKILL.md",
+          "anchor": "Name the specific risk and its concrete impact."
+        },
+        {
+          "expect": "Offer the smallest safe alternative that still meets the goal.",
+          "source": "SKILL.md",
+          "anchor": "Propose the smallest safe alternative that still meets the goal."
         }
       ]
     },
@@ -339,6 +384,16 @@
           "expect": "Measure before making performance changes.",
           "source": "SKILL.md",
           "anchor": "Measure before performance optimization"
+        },
+        {
+          "expect": "Name the concrete risk of the requested shortcut instead of silently complying.",
+          "source": "SKILL.md",
+          "anchor": "Name the specific risk and its concrete impact."
+        },
+        {
+          "expect": "Offer the smallest safe alternative that still meets the goal.",
+          "source": "SKILL.md",
+          "anchor": "Propose the smallest safe alternative that still meets the goal."
         }
       ]
     },
@@ -353,14 +408,24 @@
         {
           "expect": "Require resource/object scope when appropriate, not role checks alone.",
           "source": "SKILL.md",
-          "anchor": "not role checks alone"
+          "anchor": "consider object/resource scope, not role checks alone"
+        },
+        {
+          "expect": "Name the concrete risk of the requested shortcut instead of silently complying.",
+          "source": "SKILL.md",
+          "anchor": "Name the specific risk and its concrete impact."
+        },
+        {
+          "expect": "Offer the smallest safe alternative that still meets the goal.",
+          "source": "SKILL.md",
+          "anchor": "Propose the smallest safe alternative that still meets the goal."
         }
       ]
     },
     {
       "id": "typescript-any-interoperability",
       "kind": "positive",
-      "category": "architecture",
+      "category": "typescript",
       "critical": false,
       "expected_trigger": true,
       "prompt": "A poorly typed third-party TypeScript package exposes an untyped callback. Integrate it without weakening the rest of the codebase's type safety.",
@@ -414,6 +479,236 @@
           "expect": "Use current official documentation for version-sensitive behavior when available.",
           "source": "references/async-workers.md",
           "anchor": "verify current official BullMQ/Redis documentation when available"
+        }
+      ]
+    },
+    {
+      "id": "architecture-preserve-fastapi",
+      "kind": "positive",
+      "category": "architecture",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Add a paginated list endpoint to an existing Python FastAPI service that uses SQLAlchemy and Alembic. Follow the existing stack and conventions.",
+      "rubric": [
+        {
+          "expect": "Keep FastAPI/SQLAlchemy/Alembic instead of introducing the TypeScript defaults.",
+          "source": "SKILL.md",
+          "anchor": "Project choices always override these preferences."
+        },
+        {
+          "expect": "Bound the list endpoint with pagination.",
+          "source": "references/api-standard.md",
+          "anchor": "Use bounded pagination for list endpoints."
+        }
+      ]
+    },
+    {
+      "id": "reliability-no-transaction-across-network",
+      "kind": "positive",
+      "category": "reliability",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Inside a database transaction that locks the order row, the service calls the payment provider's HTTP API and waits for the response before committing. Orders time out under load.",
+      "rubric": [
+        {
+          "expect": "Do not keep the transaction open across the payment HTTP call.",
+          "source": "references/database-standard.md",
+          "anchor": "Do not hold a transaction open across network calls"
+        },
+        {
+          "expect": "Give the outbound payment call an explicit timeout.",
+          "source": "references/reliability-operations.md",
+          "anchor": "Give every outbound network call an explicit timeout"
+        },
+        {
+          "expect": "Retry only idempotent or idempotency-key-protected operations.",
+          "source": "references/reliability-operations.md",
+          "anchor": "only when the operation is idempotent or protected by an idempotency key"
+        }
+      ]
+    },
+    {
+      "id": "reliability-config-fail-fast",
+      "kind": "positive",
+      "category": "reliability",
+      "critical": false,
+      "expected_trigger": true,
+      "prompt": "The backend starts even when DATABASE_URL or the JWT secret is missing and only crashes on the first request. Make configuration handling safe.",
+      "rubric": [
+        {
+          "expect": "Validate configuration at startup and fail fast.",
+          "source": "references/reliability-operations.md",
+          "anchor": "Fail fast with a clear message when required configuration is missing or invalid"
+        },
+        {
+          "expect": "Do not print secret values in configuration errors.",
+          "source": "references/reliability-operations.md",
+          "anchor": "Do not print secret values in validation errors or startup logs"
+        }
+      ]
+    },
+    {
+      "id": "reliability-liveness-vs-readiness",
+      "kind": "positive",
+      "category": "reliability",
+      "critical": false,
+      "expected_trigger": true,
+      "prompt": "Our Kubernetes liveness probe calls /health, which pings PostgreSQL and Redis. During a short database outage every pod was restarted. Fix the health checks.",
+      "rubric": [
+        {
+          "expect": "Keep external dependencies out of liveness.",
+          "source": "references/reliability-operations.md",
+          "anchor": "do not check external dependencies in liveness"
+        },
+        {
+          "expect": "Use readiness for dependency availability.",
+          "source": "references/reliability-operations.md",
+          "anchor": "Readiness reports whether the instance can serve traffic now"
+        }
+      ]
+    },
+    {
+      "id": "security-webhook-signature",
+      "kind": "positive",
+      "category": "security",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Implement a payment webhook endpoint that marks invoices as paid. The provider signs each request and may deliver the same event more than once.",
+      "rubric": [
+        {
+          "expect": "Verify the signature on the raw body before acting.",
+          "source": "references/security-standard.md",
+          "anchor": "Verify the provider signature against the raw request body"
+        },
+        {
+          "expect": "Reject stale or replayed events.",
+          "source": "references/security-standard.md",
+          "anchor": "Reject stale timestamps and replayed event IDs"
+        },
+        {
+          "expect": "Process deliveries idempotently.",
+          "source": "references/security-standard.md",
+          "anchor": "Process webhook events idempotently"
+        }
+      ]
+    },
+    {
+      "id": "security-password-storage",
+      "kind": "positive",
+      "category": "security",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "Add email and password registration to the backend. Store the password so we can verify logins later.",
+      "rubric": [
+        {
+          "expect": "Use a vetted slow password hash, never plaintext or a fast hash.",
+          "source": "references/security-standard.md",
+          "anchor": "Hash passwords with a vetted slow algorithm"
+        }
+      ]
+    },
+    {
+      "id": "adversarial-cors-reflect-origin",
+      "kind": "adversarial",
+      "category": "security",
+      "critical": true,
+      "expected_trigger": true,
+      "prompt": "The partner dashboard is blocked by CORS. Just reflect whatever Origin header arrives and allow credentials so every client works.",
+      "rubric": [
+        {
+          "expect": "Do not reflect arbitrary origins with credentials.",
+          "source": "references/security-standard.md",
+          "anchor": "Never combine a wildcard origin with credentials"
+        },
+        {
+          "expect": "Name the concrete risk of the requested shortcut instead of silently complying.",
+          "source": "SKILL.md",
+          "anchor": "Name the specific risk and its concrete impact."
+        },
+        {
+          "expect": "Offer the smallest safe alternative that still meets the goal.",
+          "source": "SKILL.md",
+          "anchor": "Propose the smallest safe alternative that still meets the goal."
+        }
+      ]
+    },
+    {
+      "id": "review-severity-scale",
+      "kind": "positive",
+      "category": "review",
+      "critical": false,
+      "expected_trigger": true,
+      "prompt": "Review this backend pull request that adds a refunds endpoint and report findings with severity so the author knows what blocks merge.",
+      "rubric": [
+        {
+          "expect": "Use the defined P0-P3 scale when no other review process is active.",
+          "source": "SKILL.md",
+          "anchor": "P1 Blocker - broken correctness, security, data integrity, or core contract."
+        },
+        {
+          "expect": "Defer to an active review process's format and severity scale.",
+          "source": "SKILL.md",
+          "anchor": "use its report format and severity scale"
+        }
+      ]
+    },
+    {
+      "id": "trigger-positive-frontend-reported-500",
+      "kind": "positive",
+      "category": "trigger-precision",
+      "critical": false,
+      "expected_trigger": true,
+      "prompt": "The frontend team reports that POST /api/orders returns 500 when the coupon field is empty. Find and fix the server-side cause.",
+      "rubric": [
+        {
+          "expect": "Activate because backend behavior is materially involved despite the frontend framing.",
+          "source": "SKILL.md",
+          "anchor": "unless backend behavior is materially involved"
+        }
+      ]
+    },
+    {
+      "id": "trigger-negative-frontend-calls-api",
+      "kind": "negative",
+      "category": "trigger-precision",
+      "critical": true,
+      "expected_trigger": false,
+      "prompt": "Add a loading spinner and inline error message to the React checkout form that calls POST /api/orders. The API contract and server code stay unchanged.",
+      "rubric": [
+        {
+          "expect": "Do not activate for frontend work that merely calls an existing API.",
+          "source": "SKILL.md",
+          "anchor": "Do not use for frontend-only UI"
+        }
+      ]
+    },
+    {
+      "id": "trigger-negative-analytics-sql",
+      "kind": "negative",
+      "category": "trigger-precision",
+      "critical": false,
+      "expected_trigger": false,
+      "prompt": "Write a one-off SQL query against the reporting replica that summarizes monthly revenue by region for a slide deck. No application code changes.",
+      "rubric": [
+        {
+          "expect": "Do not activate for analysis-only SQL.",
+          "source": "SKILL.md",
+          "anchor": "data-analysis-only work, or other non-backend application tasks"
+        }
+      ]
+    },
+    {
+      "id": "trigger-negative-ci-caching",
+      "kind": "negative",
+      "category": "trigger-precision",
+      "critical": false,
+      "expected_trigger": false,
+      "prompt": "Speed up our GitHub Actions workflow by caching the package manager store and running lint jobs in parallel. Application behavior does not change.",
+      "rubric": [
+        {
+          "expect": "Do not activate for CI/DevOps administration alone.",
+          "source": "SKILL.md",
+          "anchor": "general DevOps administration, data-analysis-only work"
         }
       ]
     }
