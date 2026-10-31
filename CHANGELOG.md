@@ -36,6 +36,16 @@ The project follows Semantic Versioning.
 - Transaction rule against holding database transactions open across network I/O.
 - Eval cases for reliability, webhooks, password storage, CORS, severity, non-TypeScript stacks, and near-miss trigger boundaries.
 - `.gitattributes` enforcing LF line endings, and a CI matrix that proves the package is byte-identical on Linux and Windows.
+- Standard-library unit tests in `tests/` for `validate_repo.py`, `run_evals.py`, and `package_skill.py`, run in CI.
+- Validation of `.agents/plugins/marketplace.json` and the `plugin.json` skills path.
+
+### Fixed
+
+- Package file order no longer depends on the operating system's path sorting (Windows sorted `SKILL.md` case-insensitively), so Linux and Windows builds are byte-identical.
+- Packaging and validation list files through git, so gitignored local files such as `.DS_Store` are never packaged or compared.
+- Secret scanning covers every file git would commit (including `.env.example`) and detects Stripe live keys, Slack tokens, GitHub fine-grained/OAuth tokens, Google API keys, and AWS temporary keys.
+- `validate_repo.py` no longer mutates module globals when validating another root.
+- CI actions are pinned to commit SHAs.
 
 ### Release policy
 

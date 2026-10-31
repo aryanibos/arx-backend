@@ -12,12 +12,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_ROOT = ROOT / "skills" / "arx-be"
-PLUGIN_SKILL_ROOT = ROOT / "plugins" / "arx-be" / "skills" / "arx-be"
-PLUGIN_JSON = ROOT / "plugins" / "arx-be" / ".codex-plugin" / "plugin.json"
-README = ROOT / "README.md"
-CHANGELOG = ROOT / "CHANGELOG.md"
-OPENAI_YAML = SKILL_ROOT / "agents" / "openai.yaml"
 
 ALLOWED_FRONTMATTER = {"name", "description"}
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -25,16 +19,68 @@ REFERENCE_RE = re.compile(r"references/[A-Za-z0-9._/-]+\.md")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$")
 SECRET_PATTERNS = [
-    re.compile(r"AKIA[0-9A-Z]{16}"),
-    re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
-    re.compile(r"\bghp_[A-Za-z0-9]{30,}\b"),
-    re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"),
+    ("AWS access key", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")),
+    ("private key", re.compile(r"-----BEGIN (?:[A-Z]+ )?PRIVATE KEY-----")),
+    ("GitHub token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}\b")),
+    ("GitHub fine-grained token", re.compile(r"\bgithub_pat_[A-Za-z0-9_]{22,}\b")),
+    ("sk- API key", re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b")),
+    ("Stripe live key", re.compile(r"\b(?:sk|rk)_live_[A-Za-z0-9]{16,}\b")),
+    ("Slack token", re.compile(r"\bxox[abposr]-[A-Za-z0-9-]{10,}\b")),
+    ("Google API key", re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")),
 ]
-TEXT_SUFFIXES = {".md", ".json", ".yaml", ".yml", ".py", ".sh", ".txt"}
+# Used only when git cannot list files (for example an extracted source archive).
+FALLBACK_EXCLUDED_PARTS = {".git", "dist", "__pycache__"}
 
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def git(root: Path, *args: str) -> subprocess.CompletedProcess[bytes] | None:
+    try:
+        return subprocess.run(["git", "-C", str(root), *args], capture_output=True, check=False)
+    except OSError:
+        return None
+
+
+def is_git_root(root: Path) -> bool:
+    # git walks up parent directories, so only trust it when root is the repository itself.
+    result = git(root, "rev-parse", "--show-toplevel")
+    if result is None or result.returncode != 0:
+        return False
+    return Path(result.stdout.decode("utf-8").strip()).resolve() == root.resolve()
+
+
+def list_files(base: Path, root: Path) -> list[Path]:
+    """Files under base that git tracks or would track, ignoring gitignored local files."""
+    files: set[Path] | None = None
+    if is_git_root(root):
+        pathspec = base.resolve().relative_to(root.resolve()).as_posix()
+        result = git(root, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", pathspec)
+        if result is not None and result.returncode == 0:
+            names = [name for name in result.stdout.decode("utf-8").split("\0") if name]
+            files = {p for p in (root / name for name in names) if p.is_file()}
+    if files is None:
+        files = {
+            p
+            for p in base.rglob("*")
+            if p.is_file() and not FALLBACK_EXCLUDED_PARTS.intersection(p.relative_to(base).parts)
+        }
+    # Sort by POSIX string so ordering is identical on case-insensitive Windows paths.
+    return sorted(files, key=lambda p: p.as_posix())
+
+
+def is_executable(path: Path, root: Path) -> bool | None:
+    """Return the shipped executable bit, or None when it cannot be determined."""
+    # The git index is authoritative for the mode that ships; Windows filesystems
+    # do not carry an executable bit at all.
+    if is_git_root(root):
+        result = git(root, "ls-files", "-s", "--", path.relative_to(root).as_posix())
+        if result is not None and result.returncode == 0 and result.stdout.strip():
+            return result.stdout.decode("utf-8").split(maxsplit=1)[0] == "100755"
+    if os.name == "nt":
+        return None
+    return bool(path.stat().st_mode & stat.S_IXUSR)
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
@@ -62,10 +108,10 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
     return data, text[end + 5 :]
 
 
-def compare_trees(a: Path, b: Path) -> list[str]:
+def compare_trees(a: Path, b: Path, root: Path) -> list[str]:
     errors: list[str] = []
-    a_files = {p.relative_to(a).as_posix(): p for p in a.rglob("*") if p.is_file()}
-    b_files = {p.relative_to(b).as_posix(): p for p in b.rglob("*") if p.is_file()}
+    a_files = {p.relative_to(a).as_posix(): p for p in list_files(a, root)}
+    b_files = {p.relative_to(b).as_posix(): p for p in list_files(b, root)}
     if set(a_files) != set(b_files):
         missing_b = sorted(set(a_files) - set(b_files))
         missing_a = sorted(set(b_files) - set(a_files))
@@ -79,34 +125,7 @@ def compare_trees(a: Path, b: Path) -> list[str]:
     return errors
 
 
-def git_index_mode(path: Path) -> str | None:
-    """Return the git index file mode (e.g. 100755), or None when git cannot tell."""
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(ROOT), "ls-files", "-s", "--", path.relative_to(ROOT).as_posix()],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-    except OSError:
-        return None
-    if result.returncode != 0 or not result.stdout.strip():
-        return None
-    return result.stdout.split(maxsplit=1)[0]
-
-
-def is_executable(path: Path) -> bool | None:
-    # The git index is authoritative for the mode that ships; Windows filesystems
-    # do not carry an executable bit at all.
-    mode = git_index_mode(path)
-    if mode is not None:
-        return mode == "100755"
-    if os.name == "nt":
-        return None
-    return bool(path.stat().st_mode & stat.S_IXUSR)
-
-
-def validate_local_markdown_links(path: Path, text: str) -> list[str]:
+def validate_local_markdown_links(path: Path, text: str, root: Path) -> list[str]:
     errors: list[str] = []
     for target in MARKDOWN_LINK_RE.findall(text):
         target = target.split("#", 1)[0].strip()
@@ -114,46 +133,70 @@ def validate_local_markdown_links(path: Path, text: str) -> list[str]:
             continue
         candidate = (path.parent / target).resolve()
         try:
-            candidate.relative_to(ROOT.resolve())
+            candidate.relative_to(root)
         except ValueError:
-            errors.append(f"{path.relative_to(ROOT)} links outside repository: {target}")
+            errors.append(f"{path.relative_to(root)} links outside repository: {target}")
             continue
         if not candidate.exists():
-            errors.append(f"broken markdown link in {path.relative_to(ROOT)}: {target}")
+            errors.append(f"broken markdown link in {path.relative_to(root)}: {target}")
+    return errors
+
+
+def validate_marketplace(root: Path, marketplace_json: Path, plugin_dir: Path, plugin: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    try:
+        marketplace = json.loads(read_text(marketplace_json))
+    except json.JSONDecodeError as exc:
+        return [f"marketplace.json is invalid JSON: {exc}"]
+    plugins = marketplace.get("plugins") if isinstance(marketplace, dict) else None
+    entries = [p for p in plugins if isinstance(p, dict) and p.get("name") == "arx-be"] if isinstance(plugins, list) else []
+    if len(entries) != 1:
+        errors.append("marketplace.json must list the arx-be plugin exactly once")
+    else:
+        source = entries[0].get("source")
+        source_path = source.get("path") if isinstance(source, dict) else None
+        if not isinstance(source_path, str) or (root / source_path).resolve() != plugin_dir.resolve():
+            errors.append(f"marketplace.json arx-be source path must point to {plugin_dir.relative_to(root).as_posix()}")
+
+    skills_path = plugin.get("skills")
+    if not isinstance(skills_path, str) or not (plugin_dir / skills_path / "arx-be" / "SKILL.md").is_file():
+        errors.append("plugin.json skills path must contain arx-be/SKILL.md")
     return errors
 
 
 def validate_repo(root: Path = ROOT) -> list[str]:
-    global ROOT, SKILL_ROOT, PLUGIN_SKILL_ROOT, PLUGIN_JSON, README, CHANGELOG, OPENAI_YAML
-    ROOT = root.resolve()
-    SKILL_ROOT = ROOT / "skills" / "arx-be"
-    PLUGIN_SKILL_ROOT = ROOT / "plugins" / "arx-be" / "skills" / "arx-be"
-    PLUGIN_JSON = ROOT / "plugins" / "arx-be" / ".codex-plugin" / "plugin.json"
-    README = ROOT / "README.md"
-    CHANGELOG = ROOT / "CHANGELOG.md"
-    OPENAI_YAML = SKILL_ROOT / "agents" / "openai.yaml"
+    root = root.resolve()
+    skill_root = root / "skills" / "arx-be"
+    plugin_dir = root / "plugins" / "arx-be"
+    plugin_skill_root = plugin_dir / "skills" / "arx-be"
+    plugin_json = plugin_dir / ".codex-plugin" / "plugin.json"
+    marketplace_json = root / ".agents" / "plugins" / "marketplace.json"
+    readme = root / "README.md"
+    changelog = root / "CHANGELOG.md"
+    openai_yaml = skill_root / "agents" / "openai.yaml"
 
     errors: list[str] = []
     required = [
-        SKILL_ROOT / "SKILL.md",
-        OPENAI_YAML,
-        PLUGIN_JSON,
-        README,
-        CHANGELOG,
-        ROOT / "evals" / "cases.json",
-        ROOT / "scripts" / "run_evals.py",
-        ROOT / "scripts" / "package_skill.py",
-        ROOT / "scripts" / "check-skill-sync.sh",
-        ROOT / "scripts" / "sync-skill.sh",
-        ROOT / ".github" / "workflows" / "validate.yml",
+        skill_root / "SKILL.md",
+        openai_yaml,
+        plugin_json,
+        marketplace_json,
+        readme,
+        changelog,
+        root / "evals" / "cases.json",
+        root / "scripts" / "run_evals.py",
+        root / "scripts" / "package_skill.py",
+        root / "scripts" / "check-skill-sync.sh",
+        root / "scripts" / "sync-skill.sh",
+        root / ".github" / "workflows" / "validate.yml",
     ]
     for path in required:
         if not path.exists():
-            errors.append(f"required path missing: {path.relative_to(ROOT)}")
+            errors.append(f"required path missing: {path.relative_to(root).as_posix()}")
     if errors:
         return errors
 
-    skill_text = read_text(SKILL_ROOT / "SKILL.md")
+    skill_text = read_text(skill_root / "SKILL.md")
     try:
         frontmatter, _ = parse_frontmatter(skill_text)
     except ValueError as exc:
@@ -187,8 +230,8 @@ def validate_repo(root: Path = ROOT) -> list[str]:
     if skill_lines >= 500:
         errors.append(f"SKILL.md must stay below 500 lines; found {skill_lines}")
 
-    references_dir = SKILL_ROOT / "references"
-    refs_on_disk = {p.relative_to(SKILL_ROOT).as_posix() for p in references_dir.glob("*.md")}
+    references_dir = skill_root / "references"
+    refs_on_disk = {p.relative_to(skill_root).as_posix() for p in references_dir.glob("*.md")}
     refs_declared = set(REFERENCE_RE.findall(skill_text))
     missing_refs = sorted(refs_declared - refs_on_disk)
     orphan_refs = sorted(refs_on_disk - refs_declared)
@@ -203,11 +246,11 @@ def validate_repo(root: Path = ROOT) -> list[str]:
         text = read_text(ref)
         line_count = text.count("\n") + 1
         if line_count > 100 and not re.search(r"^## (?:Contents|Table of contents)\s*$", text, re.MULTILINE | re.IGNORECASE):
-            errors.append(f"{ref.relative_to(ROOT)} exceeds 100 lines without a table of contents")
-        errors.extend(validate_local_markdown_links(ref, text))
-    errors.extend(validate_local_markdown_links(SKILL_ROOT / "SKILL.md", skill_text))
+            errors.append(f"{ref.relative_to(root).as_posix()} exceeds 100 lines without a table of contents")
+        errors.extend(validate_local_markdown_links(ref, text, root))
+    errors.extend(validate_local_markdown_links(skill_root / "SKILL.md", skill_text, root))
 
-    openai_text = read_text(OPENAI_YAML)
+    openai_text = read_text(openai_yaml)
     if "\t" in openai_text:
         errors.append("agents/openai.yaml may not contain tabs")
     if not re.search(r"^interface:\s*$", openai_text, re.MULTILINE):
@@ -218,18 +261,22 @@ def validate_repo(root: Path = ROOT) -> list[str]:
         errors.append("agents/openai.yaml missing interface.short_description")
 
     try:
-        plugin = json.loads(read_text(PLUGIN_JSON))
+        plugin = json.loads(read_text(plugin_json))
     except json.JSONDecodeError as exc:
         errors.append(f"plugin.json is invalid JSON: {exc}")
+        plugin = {}
+    if not isinstance(plugin, dict):
+        errors.append("plugin.json must be an object")
         plugin = {}
     version = str(plugin.get("version", ""))
     if not VERSION_RE.fullmatch(version):
         errors.append(f"plugin.json version is invalid semver: {version!r}")
     if plugin.get("name") != "arx-be":
         errors.append("plugin.json name must be arx-be")
+    errors.extend(validate_marketplace(root, marketplace_json, plugin_dir, plugin))
 
-    readme_text = read_text(README)
-    changelog_text = read_text(CHANGELOG)
+    readme_text = read_text(readme)
+    changelog_text = read_text(changelog)
     badge_match = re.search(r"version-([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)-", readme_text)
     current_match = re.search(r"Current development version:\s*\*\*`([^`]+)`\*\*", readme_text)
     changelog_match = re.search(r"^## \[([^\]]+)\] - (?:Unreleased|\d{4}-\d{2}-\d{2})\s*$", changelog_text, re.MULTILINE)
@@ -245,39 +292,36 @@ def validate_repo(root: Path = ROOT) -> list[str]:
     elif len(set(versions.values())) != 1:
         errors.append("version mismatch: " + json.dumps(versions, sort_keys=True))
 
-    errors.extend(compare_trees(SKILL_ROOT, PLUGIN_SKILL_ROOT))
+    errors.extend(compare_trees(skill_root, plugin_skill_root, root))
 
     # CRLF checkouts would change the packaged bytes and break reproducible builds.
-    for path in sorted(SKILL_ROOT.rglob("*")):
-        if path.is_file() and b"\r\n" in path.read_bytes():
-            errors.append(f"{path.relative_to(ROOT).as_posix()} must use LF line endings")
+    for path in list_files(skill_root, root):
+        if b"\r\n" in path.read_bytes():
+            errors.append(f"{path.relative_to(root).as_posix()} must use LF line endings")
 
     for script_name in ("sync-skill.sh", "check-skill-sync.sh"):
-        path = ROOT / "scripts" / script_name
-        if is_executable(path) is False:
-            errors.append(f"{path.relative_to(ROOT).as_posix()} must be executable")
+        path = root / "scripts" / script_name
+        if is_executable(path, root) is False:
+            errors.append(f"{path.relative_to(root).as_posix()} must be executable")
 
-    gitignore = read_text(ROOT / ".gitignore") if (ROOT / ".gitignore").exists() else ""
+    gitignore = read_text(root / ".gitignore") if (root / ".gitignore").exists() else ""
     for item in ("dist/", "__pycache__/"):
         if item not in gitignore:
             errors.append(f".gitignore should include {item}")
 
-    gitattributes = read_text(ROOT / ".gitattributes") if (ROOT / ".gitattributes").exists() else ""
+    gitattributes = read_text(root / ".gitattributes") if (root / ".gitattributes").exists() else ""
     if not re.search(r"^\*\s+.*\beol=lf\b", gitattributes, re.MULTILINE):
         errors.append(".gitattributes must normalize text files with eol=lf")
 
-    for path in ROOT.rglob("*"):
-        if not path.is_file() or ".git" in path.parts or "dist" in path.parts:
-            continue
-        if path.suffix.lower() not in TEXT_SUFFIXES and path.name not in {"SKILL.md"}:
-            continue
+    # Scan every file git would commit, whatever its extension (.env.example included).
+    for path in list_files(root, root):
         try:
             text = read_text(path)
         except UnicodeDecodeError:
             continue
-        for pattern in SECRET_PATTERNS:
+        for label, pattern in SECRET_PATTERNS:
             if pattern.search(text):
-                errors.append(f"possible secret detected in {path.relative_to(ROOT)} by pattern {pattern.pattern}")
+                errors.append(f"possible secret detected in {path.relative_to(root).as_posix()}: {label}")
 
     return errors
 

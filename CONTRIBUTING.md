@@ -16,6 +16,7 @@ After changing the skill, run:
 
 ```bash
 ./scripts/sync-skill.sh
+python -m unittest discover -s tests
 python scripts/validate_repo.py
 python scripts/run_evals.py
 ./scripts/check-skill-sync.sh
@@ -32,6 +33,7 @@ The packaged copy at `plugins/arx-be/skills/arx-be/` must remain synchronized wi
 - Keep trigger scope precise; backend-adjacent wording must not cause frontend-only or general administration work to trigger the skill.
 - Add a reference only when it materially improves reliability or avoids bloating `SKILL.md`.
 - Add or update eval cases when changing behavior, trigger scope, security/data-integrity policy, or verification rules.
+- Add or update tests in `tests/` when changing a script under `scripts/`.
 - Do not add secrets or credential examples.
 - Keep changes focused and reviewable.
 - Update `plugins/arx-be/.codex-plugin/plugin.json`, `README.md`, and `CHANGELOG.md` consistently for published version changes.

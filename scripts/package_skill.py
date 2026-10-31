@@ -12,13 +12,14 @@ from pathlib import Path
 import validate_repo
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "skills" / "arx-be"
 MAX_BYTES = 25 * 1024 * 1024
 FIXED_TIME = (1980, 1, 1, 0, 0, 0)
 
 
-def build(output: Path) -> str:
-    errors = validate_repo.validate_repo(ROOT)
+def build(output: Path, root: Path = ROOT) -> str:
+    root = root.resolve()
+    source = root / "skills" / "arx-be"
+    errors = validate_repo.validate_repo(root)
     if errors:
         print("Refusing to package an invalid repository:")
         for error in errors:
@@ -26,10 +27,11 @@ def build(output: Path) -> str:
         raise SystemExit(1)
 
     output.parent.mkdir(parents=True, exist_ok=True)
-    files = sorted(p for p in SOURCE.rglob("*") if p.is_file())
+    # Package only what git ships, so ignored local files such as .DS_Store never leak in.
+    files = validate_repo.list_files(source, root)
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
         for path in files:
-            rel = path.relative_to(SOURCE)
+            rel = path.relative_to(source)
             arcname = Path("arx-be") / rel
             info = zipfile.ZipInfo(arcname.as_posix(), date_time=FIXED_TIME)
             info.compress_type = zipfile.ZIP_DEFLATED
@@ -51,7 +53,7 @@ def build(output: Path) -> str:
             raise SystemExit(f"zip integrity check failed at: {bad}")
 
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
-    print(f"Packaged {output.relative_to(ROOT)} ({size} bytes)")
+    print(f"Packaged {output.relative_to(root).as_posix()} ({size} bytes)")
     print(f"sha256 {digest}")
     return digest
 

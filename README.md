@@ -65,6 +65,7 @@ Only when the project has not selected alternatives: TypeScript, Bun, Hono, Post
 Run all deterministic release checks locally:
 
 ```bash
+python -m unittest discover -s tests
 python scripts/validate_repo.py
 python scripts/run_evals.py
 ./scripts/check-skill-sync.sh
@@ -107,6 +108,8 @@ scripts/
   package_skill.py
   sync-skill.sh
   check-skill-sync.sh
+
+tests/                                 # unit tests for the release-gate scripts
 
 .github/workflows/
   validate.yml

@@ -158,7 +158,7 @@ def validate_cases(cases: list[Any]) -> tuple[list[str], dict[str, Any]]:
 
 def score_results(path: Path, cases: list[dict[str, Any]], version: str) -> list[str]:
     """Score one target-agent run against the release gate in evals/README.md."""
-    name = path.relative_to(ROOT).as_posix()
+    name = path.name
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -225,7 +225,7 @@ def release_gate(cases: list[dict[str, Any]]) -> list[str]:
         return [f"cannot determine release version from plugin.json: {exc}"]
     result_files = sorted(RESULTS_DIR.glob("*.json")) if RESULTS_DIR.is_dir() else []
     if not result_files:
-        return [f"no target-agent results in {RESULTS_DIR.relative_to(ROOT).as_posix()}/; see evals/README.md"]
+        return ["no target-agent results in evals/results/; see evals/README.md"]
 
     errors: list[str] = []
     scored = 0
