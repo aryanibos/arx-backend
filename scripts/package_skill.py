@@ -36,6 +36,10 @@ def build(output: Path, root: Path = ROOT) -> str:
             info = zipfile.ZipInfo(arcname.as_posix(), date_time=FIXED_TIME)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = (0o644 & 0xFFFF) << 16
+            # ZipInfo defaults create_system to 0 on Windows and 3 elsewhere,
+            # which makes the central directory differ across operating
+            # systems. Pin it so Linux and Windows builds are byte-identical.
+            info.create_system = 3
             zf.writestr(info, path.read_bytes(), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
 
     size = output.stat().st_size
