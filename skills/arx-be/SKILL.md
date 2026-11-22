@@ -1,6 +1,6 @@
 ---
 name: arx-be
-description: Backend engineering workflow for implementing, modifying, debugging, refactoring, and reviewing backend applications. Use for REST APIs, TypeScript services, PostgreSQL/Drizzle repositories and migrations, Redis/BullMQ workers, S3-compatible storage, validation, authentication and authorization, transactions, backend testing, reliability, security reviews, and backend-focused pull request reviews. Preserve existing project architecture, ADRs, repository conventions, and explicit user instructions over this skill's defaults. Do not use for frontend-only UI, client-side styling, general DevOps administration, data-analysis-only work, or other non-backend application tasks unless backend behavior is materially involved.
+description: "Backend engineering workflow for implementing, modifying, debugging, refactoring, and reviewing backend applications in the project's chosen stack. Use for REST APIs, services, repositories and migrations, queue workers, object storage, validation, authentication and authorization, transactions, backend testing, reliability, security reviews, and backend-focused pull request reviews. Resolve the backend stack from the project foundation when one exists, or ask the user through a stack ask-gate when it does not; never apply a stack silently. Preserve existing project architecture, ADRs, repository conventions, and explicit user instructions over this skill's recommendations. Do not use for frontend-only UI, client-side styling, general DevOps administration, data-analysis-only work, or other non-backend application tasks unless backend behavior is materially involved."
 ---
 
 # ARX Backend
@@ -20,6 +20,17 @@ Apply guidance in this order:
 5. General backend preferences.
 
 Never silently replace an approved project architecture or technology choice.
+
+## Stack resolution
+
+The backend stack is never assumed. Resolve it in this order before scaffolding or choosing patterns:
+
+1. Foundation first. If the project was built with arx-foundation or arx-lead, read the foundation docs (technical spec, decision log, ADRs) and take the backend stack recorded there. Build with it; do not ask again.
+2. Existing project. If the repository already has a backend stack, keep it. See Source priority.
+3. Standalone ask-gate. If there is no foundation and no existing stack, STOP and ask the user which backend stack to use before writing code. Present curated recommendations from `references/stack-resolution.md` plus a choose-your-own option. Do not proceed until the user answers.
+4. Foundation silent on stack. If a foundation exists but does not name a backend stack, ask. Never fall back silently to the recommended stack.
+
+Before finalizing a recommendation, present one specific risk or alternative for the user to weigh (challenge step), then record the resolved stack and its reason in the decision log or completion report.
 
 ## Conflicting instructions
 
@@ -43,13 +54,14 @@ Do not refuse or lecture over ordinary preferences. This applies only when a saf
 
 Before making a non-trivial backend change:
 
-1. Inspect the repository structure and relevant project instructions.
-2. Read the nearest architecture, ADR, schema, and coding-standard files.
-3. Inspect adjacent implementation before creating a new pattern.
-4. Identify the requested behavior and acceptance criteria.
-5. Identify affected boundaries, persistence, external dependencies, and failure windows.
-6. Load only the relevant references below.
-7. Produce a short implementation plan when the work spans multiple layers or has migration/security implications.
+1. Resolve the backend stack first (see Stack resolution).
+2. Inspect the repository structure and relevant project instructions.
+3. Read the nearest architecture, ADR, schema, and coding-standard files.
+4. Inspect adjacent implementation before creating a new pattern.
+5. Identify the requested behavior and acceptance criteria.
+6. Identify affected boundaries, persistence, external dependencies, and failure windows.
+7. Load only the relevant references below.
+8. Produce a short implementation plan when the work spans multiple layers or has migration/security implications.
 
 Do not create parallel conventions when an acceptable project convention already exists.
 
@@ -57,6 +69,7 @@ Do not create parallel conventions when an acceptable project convention already
 
 Read only the references relevant to the current task:
 
+- `references/stack-resolution.md` - stack resolution, ask-gate, recommendation table.
 - `references/backend-standard.md` - module boundaries, layered architecture, cross-module calls, maintainability.
 - `references/typescript-standard.md` - TypeScript strictness, typing, exports, dependency discipline.
 - `references/api-standard.md` - HTTP/REST contracts, validation, errors, pagination, idempotency.
@@ -90,9 +103,9 @@ Keep these rules active across all backend work:
 - Do not weaken compiler, validation, security, or test settings merely to make a change pass.
 - Do not claim a command, test, or check passed unless it was actually executed successfully.
 
-## Default technology preferences
+## Recommended technology preferences
 
-Use these only when the project has not chosen alternatives:
+These are the curated recommendations used by the stack ask-gate in `references/stack-resolution.md`, not silent defaults. They apply only when the resolved stack (see Stack resolution) uses them.
 
 - TypeScript
 - Bun
@@ -113,7 +126,7 @@ Project choices always override these preferences.
 
 For implementation, modification, or backend-focused refactoring:
 
-1. Confirm the task scope and affected layers.
+1. Confirm the task scope, the resolved backend stack, and affected layers.
 2. Load the relevant references.
 3. Identify schema/migration, security, authorization, compatibility, retry, and data-integrity implications.
 4. Implement the smallest complete solution that follows existing project patterns.
@@ -175,7 +188,7 @@ Do not manufacture findings to fill categories. Distinguish merge blockers from 
 
 ## Verification rules
 
-Prefer the repository's canonical command when one exists, for example `bun run complete-check`. Otherwise run the applicable type-check, lint, format check, tests, and build commands.
+Prefer the repository's canonical command when one exists, for example `bun run complete-check` for a Bun project. Otherwise run the applicable type-check, lint, format check, tests, and build commands.
 
 Also inspect the final diff/status when repository access allows it.
 

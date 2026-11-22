@@ -2,6 +2,8 @@
 
 Use this reference for TypeScript implementation and review.
 
+Scope: this reference applies only when the resolved stack is TypeScript. For another language, apply the same discipline (strict typing, no unsafe casts, dependency hygiene) with that language's equivalent tooling; see `stack-resolution.md`.
+
 ## Compiler posture
 
 Prefer strict compiler settings when the project can support them, including:

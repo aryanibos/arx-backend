@@ -1,19 +1,19 @@
 # ARX Backend
 
-[![Version](https://img.shields.io/badge/version-2.0.0--rc.1-111827)](https://github.com/aryanibos/arx-backend/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0-111827)](https://github.com/aryanibos/arx-backend/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-16a34a.svg)](LICENSE)
 [![Codex Plugin](https://img.shields.io/badge/Codex-plugin-111827)](https://developers.openai.com/plugins/)
 [![Agent Skill](https://img.shields.io/badge/Agent%20Skill-cross--agent-7c3aed)](https://skills.sh/)
 
 **ARX Backend** is a reusable backend engineering skill for AI coding agents. The skill is named **`arx-be`** and supports backend implementation, debugging, refactoring, and code review while preserving the architecture and conventions of the project it is working in.
 
-> Project-specific architecture always wins. `arx-be` provides strong defaults and review discipline, but it never silently replaces an approved HLD, ADR, repository convention, or explicit task instruction.
+> Project-specific architecture always wins. `arx-be` provides curated recommendations and review discipline, but it never silently replaces an approved HLD, ADR, repository convention, or explicit task instruction.
 
-## Version 2.0 release-candidate status
+## Version 2.0
 
-Version 2.0 is intentionally not tagged yet. The repository is being hardened before the public `v2.0.0` release.
+Version `2.0.0` is released and tagged.
 
-Current development version: **`2.0.0-rc.1`**.
+Current development version: **`2.0.0`**.
 
 Release gates now include:
 
@@ -48,17 +48,17 @@ codex plugin marketplace add aryanibos/arx-backend
 | Architecture | Project-first boundaries and layered REST when appropriate |
 | TypeScript | Strict typing, safe narrowing, dependency discipline |
 | API | REST contracts, validation, errors, pagination, idempotency |
-| Database | PostgreSQL, Drizzle, migrations, transactions, constraints |
-| Async | Redis, BullMQ, retries, idempotency, graceful shutdown |
+| Database | Relational databases (PostgreSQL and Drizzle in depth), migrations, transactions, constraints |
+| Async | Queues and workers (Redis and BullMQ in depth), retries, idempotency, graceful shutdown |
 | Storage | S3-compatible storage, uploads, signed URL safety |
 | Security | AuthN/AuthZ, sessions/tokens, CORS/CSRF, webhooks, secrets, SSRF/path/file risks |
 | Testing | Unit, integration, contract tests, deterministic verification |
 | Reliability | Partial failures, timeouts, configuration, health checks, retry semantics |
 | Review | Correctness, security, data integrity, maintainability |
 
-## Default preferences
+## Recommended preferences
 
-Only when the project has not selected alternatives: TypeScript, Bun, Hono, PostgreSQL, Drizzle ORM, Zod, Redis/BullMQ, S3-compatible storage, Docker, `bun:test`, and Pino.
+Recommendations, not silent defaults: TypeScript, Bun, Hono, PostgreSQL, Drizzle ORM, Zod, Redis/BullMQ, S3-compatible storage, Docker, `bun:test`, and Pino. The backend stack is resolved from the project foundation when one exists (arx-foundation or arx-lead), or through a stack ask-gate when it does not. See `skills/arx-be/references/stack-resolution.md`.
 
 ## Quality gates
 
@@ -134,4 +134,4 @@ Never commit production credentials, API keys, access tokens, passwords, private
 
 ## Versioning
 
-Current development version: **`2.0.0-rc.1`**. It remains untagged until the v2 release gates pass.
+Current development version: **`2.0.0`**. Tagged as `v2.0.0`.

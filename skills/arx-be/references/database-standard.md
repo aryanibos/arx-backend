@@ -2,6 +2,8 @@
 
 Use this reference for relational schema, PostgreSQL, Drizzle, transactions, migrations, indexing, and query review.
 
+Scope: this reference documents the recommended PostgreSQL and Drizzle stack in depth. When the resolved stack differs, apply the same rules with the chosen stack's equivalent; see `stack-resolution.md`.
+
 ## Database choice and naming
 
 Prefer PostgreSQL only when the project has not already selected another data store.

@@ -1,6 +1,6 @@
 {
   "name": "arx-be",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0",
   "description": "Reusable backend engineering skill for implementation, debugging, refactoring, and code review with progressive domain references.",
   "author": {
     "name": "Arya Isnaidi",

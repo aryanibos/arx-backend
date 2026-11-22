@@ -2,6 +2,8 @@
 
 Use this reference for Redis, BullMQ, background jobs, retries, and asynchronous processing.
 
+Scope: this reference documents the recommended Redis and BullMQ stack in depth. When the resolved stack differs, apply the same rules with the chosen stack's equivalent; see `stack-resolution.md`.
+
 ## Redis
 
 Use Redis for caching, ephemeral coordination, rate limiting, or queue infrastructure when appropriate. Do not use it as the only durable source of important business state unless the project explicitly requires that design.

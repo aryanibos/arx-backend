@@ -4,7 +4,7 @@ Use this reference when adding tests, changing behavior, reviewing quality gates
 
 ## Test behavior, not implementation trivia
 
-For Bun projects prefer `bun:test` unless the project already uses another approved runner.
+Use the project's approved test runner; for a Bun project prefer `bun:test` unless the project already uses another approved runner.
 
 Choose the lowest-cost test level that proves the important behavior, then add integration/contract coverage where boundaries matter.
 

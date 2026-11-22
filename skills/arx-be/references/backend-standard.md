@@ -39,13 +39,13 @@ Own:
 - repository and infrastructure coordination
 - application/domain errors
 
-Do not depend on Hono `Context`, construct raw HTTP responses, or depend on frontend concerns.
+Do not depend on framework request-context objects (for example Hono `Context`), construct raw HTTP responses, or depend on frontend concerns.
 
 ## Repository / persistence layer
 
 Own:
 - persistence operations
-- Drizzle/SQL queries
+- SQL queries through the resolved ORM (for example Drizzle)
 - persistence-oriented mapping
 
 Do not know HTTP, decide authorization policy, produce user-facing messages, or own workflow decisions.
